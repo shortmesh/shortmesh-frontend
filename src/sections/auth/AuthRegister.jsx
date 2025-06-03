@@ -47,7 +47,7 @@ export default function AuthRegister() {
   };
 
   const [searchParams] = useSearchParams();
-  const auth = searchParams.get('auth'); // get auth and set route based on that
+  const auth = searchParams.get('auth');
 
   useEffect(() => {
     changePassword('');
@@ -55,7 +55,7 @@ export default function AuthRegister() {
 
   return (
     <>
-<Formik
+      <Formik
         initialValues={{
           email: '',
           password: '',

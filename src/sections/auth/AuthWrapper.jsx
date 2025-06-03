@@ -17,10 +17,10 @@ export default function AuthWrapper({ children }) {
   return (
     <Box sx={{ minHeight: '100vh' }}>
       <AuthBackground />
-      <Grid container direction="column" justifyContent="flex-end" sx={{ minHeight: '100vh' }}>
+      <Grid container direction="column" justifyContent="flex-end" sx={{ minHeight: { md: '100vh', xs: '90vh' } }}>
         <Grid sx={{ px: 3, mt: 3 }} size={12}>
           {/* <Logo to="/" /> */}
-          <Box component="img" src="/full-logo.svg" alt="logo" width="15%" />
+          <Box component="img" src="/full-logo.svg" alt="logo" width={{ md: '15%', xs: '50%' }} />
         </Grid>
         <Grid size={12}>
           <Grid
