@@ -39,7 +39,11 @@ const MainRoutes = {
   children: [
     {
       path: '/',
-      element: <DashboardDefault />
+      element: (
+        <RequireAuth>
+          <DashboardDefault />{' '}
+        </RequireAuth>
+      )
     },
     {
       path: 'dashboard',

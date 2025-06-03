@@ -29,9 +29,7 @@ const support = {
       title: 'help',
       type: 'item',
       url: '/help',
-      icon: icons.QuestionOutlined,
-      external: true,
-      target: true
+      icon: icons.QuestionOutlined
     }
   ]
 };

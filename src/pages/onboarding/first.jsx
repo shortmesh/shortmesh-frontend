@@ -53,7 +53,7 @@ const OnboardingStepper = () => {
     setPlatform(name);
     setTimeout(() => {
       setActiveStep(1);
-    }, 200); // slight delay for UI feedback
+    }, 200);
   };
 
   const steps = ['Add Platform', 'Authorize Connection', 'Get API Key', 'Test Send'];
