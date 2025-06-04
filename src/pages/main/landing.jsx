@@ -96,7 +96,13 @@ const Landing = () => {
       {/* Buttons + GitHub */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <AnimateButton>
-          <Button component="a" href="/dashboard" variant="contained" sx={{ textTransform: 'none', borderRadius: 7, px: 4 }}>
+          <Button
+            component="a"
+            href="/dashboard"
+            target="_blank"
+            variant="contained"
+            sx={{ textTransform: 'none', borderRadius: 7, px: 4 }}
+          >
             Login
           </Button>
         </AnimateButton>
@@ -171,7 +177,7 @@ const Landing = () => {
                 variant="h6"
                 sx={{
                   py: { md: 8, xs: 4 },
-                  fontSize: { xs: '1rem', sm: '1.3rem', md: '1.5rem' }
+                  fontSize: { xs: '1rem', sm: '1.2rem', md: '1.4rem' }
                 }}
                 wrap
               >
@@ -274,7 +280,7 @@ const Landing = () => {
             bgcolor: '#F3F3F3'
           }}
         >
-          <Typography className="header" variant="h4">
+          <Typography className="header" variant="h3">
             Key Features
           </Typography>
           <Typography variant="subtitle1" sx={{ py: 6 }}>
@@ -319,7 +325,7 @@ const Landing = () => {
 
         {/* More Section */}
         <Box sx={{ my: { xs: 15, md: 20, ld: 25 }, mx: { xs: 2, md: 15, lg: 25 } }}>
-          <Typography className="header" variant="h4" textAlign="center">
+          <Typography className="header" variant="h3" textAlign="center">
             Built For Everyone
           </Typography>
           <Typography variant="subtitle1" sx={{ py: 6 }} textAlign="center">
