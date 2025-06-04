@@ -136,7 +136,7 @@ export default function AuthLogin({ isDemo = false }) {
               </Grid>
               <Grid size={12}>
                 <AnimateButton>
-                  <Button fullWidth size="large" variant="contained" color="primary">
+                  <Button component="a" href="/dashboard" fullWidth size="large" variant="contained" color="primary">
                     Login
                   </Button>
                 </AnimateButton>

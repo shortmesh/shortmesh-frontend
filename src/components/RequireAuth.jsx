@@ -2,10 +2,10 @@
 import { Navigate, useLocation } from 'react-router-dom';
 
 const RequireAuth = ({ children }) => {
-  const isAuthenticated = !!localStorage.getItem('token');
+  const token = localStorage.getItem('token');
   const location = useLocation();
 
-  if (!isAuthenticated) {
+  if (!token) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

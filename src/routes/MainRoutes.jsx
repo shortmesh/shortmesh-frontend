@@ -5,6 +5,7 @@ import Loadable from 'components/Loadable';
 import DashboardLayout from 'layout/Dashboard';
 import RequireAuth from '../components/RequireAuth';
 import RequireOnboarding from '../components/RequireOnboarding';
+import Landing from '../pages/main/landing';
 
 // render- Dashboard
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/default')));
@@ -29,61 +30,34 @@ const OnboardingStepper = Loadable(lazy(() => import('pages/onboarding/first')))
 
 const MainRoutes = {
   path: '/',
-  element: (
-    // <RequireAuth>
-    <RequireOnboarding>
-      <DashboardLayout />
-    </RequireOnboarding>
-    // </RequireAuth>
-  ),
   children: [
     {
       path: '/',
-      element: (
-        <RequireAuth>
-          <DashboardDefault />{' '}
-        </RequireAuth>
-      )
+      element: <Landing />
     },
     {
-      path: 'dashboard',
-      element: <DashboardDefault />
-    },
-    {
-      path: 'posts',
-      element: <Posts />
-    },
-    {
-      path: 'platforms',
-      element: <Platforms />
-    },
-    {
-      path: 'analytics',
-      element: <Analytics />
-    },
-    {
-      path: 'api-keys',
-      element: <ApiKeys />
-    },
-    {
-      path: 'subscription',
-      element: <Subscription />
-    },
-    {
-      path: 'settings',
-      element: <Settings />
-    },
-    {
-      path: 'documentation',
-      element: <Documentation />
-    },
-    {
-      path: 'help',
-      element: <Help />
-    },
-    {
-      path: 'onboarding',
-      element: <OnboardingStepper />
+      element: <DashboardLayout />,
+      children: [
+        {
+          path: 'dashboard',
+          element: (
+            <RequireAuth>
+              <RequireOnboarding>
+                <DashboardDefault />
+              </RequireOnboarding>
+            </RequireAuth>
+          )
+        },
+        { path: 'posts', element: <Posts /> },
+        { path: 'platforms', element: <Platforms /> },
+        { path: 'analytics', element: <Analytics /> },
+        { path: 'api-keys', element: <ApiKeys /> },
+        { path: 'subscription', element: <Subscription /> },
+        { path: 'settings', element: <Settings /> },
+        { path: 'documentation', element: <Documentation /> },
+        { path: 'help', element: <Help /> },
+        { path: 'onboarding', element: <OnboardingStepper /> }
+      ]
     }
   ]
 };
