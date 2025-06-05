@@ -17,13 +17,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Enable Corepack and Use Latest Yarn
         run: |
           corepack enable
           corepack prepare yarn@stable --activate
-          
+
       - name: Install dependencies
         run: |
           yarn install
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: staging
-      url: https://staging.smswithoutborders.com:18550
+      url: https://staging.smswithoutborders.com:20600
     steps:
       - name: Execute Remote SSH Commands
         uses: appleboy/ssh-action@master
