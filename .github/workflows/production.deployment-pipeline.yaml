@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  deploy:
-    name: Build and Deploy Application
+  build:
+    name: Build Application
     runs-on: ubuntu-latest
     environment:
       name: production
@@ -21,13 +21,18 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Enable Corepack and Use Latest Yarn
+        run: |
+          corepack enable
+          corepack prepare yarn@stable --activate
+
       - name: Install dependencies
         run: |
-          npm install
+          yarn install
 
       - name: Build project
         run: |
-          npm run build
+          yarn build
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
