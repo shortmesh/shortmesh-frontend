@@ -5,7 +5,6 @@ import { CopyOutlined, SlackOutlined, WhatsAppOutlined, XOutlined } from '@ant-d
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 
-// Example platform data with images (replace with your own images or icons)
 const platforms = [
   {
     name: 'WhatsApp',
@@ -64,7 +63,7 @@ const OnboardingStepper = () => {
     setDeviceError('');
     try {
       const access_token = localStorage.getItem('token');
-      const username = 'vanessaigwe33'; // or get from context/form
+      const username = 'vanessaigwe33';
       const endpoint = `https://sherlockwisdom.com:8080/${platform.toLowerCase()}/devices`;
       const payload = { access_token, username };
       console.log('Add device payload:', payload, 'Endpoint:', endpoint);
