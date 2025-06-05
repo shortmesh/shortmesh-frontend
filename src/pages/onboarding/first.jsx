@@ -3,6 +3,7 @@ import { Stepper, Step, StepLabel, Button, Typography, Box, Card, CardContent, I
 import { QRCodeCanvas } from 'qrcode.react';
 import { CopyOutlined, SlackOutlined, WhatsAppOutlined, XOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router';
+import axios from 'axios';
 
 // Example platform data with images (replace with your own images or icons)
 const platforms = [
@@ -24,6 +25,8 @@ const OnboardingStepper = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [platform, setPlatform] = useState('');
   const [copied, setCopied] = useState(false);
+  const [deviceMsg, setDeviceMsg] = useState('');
+  const [deviceError, setDeviceError] = useState('');
 
   const apiKey = 'sk_live_12345-abcdef-ghijk';
 
@@ -54,6 +57,34 @@ const OnboardingStepper = () => {
     setTimeout(() => {
       setActiveStep(1);
     }, 200);
+  };
+
+  const handleAddDevice = async () => {
+    setDeviceMsg('');
+    setDeviceError('');
+    try {
+      const access_token = localStorage.getItem('token');
+      const username = 'vanessaigwe33'; // or get from context/form
+      const endpoint = `https://sherlockwisdom.com:8080/${platform.toLowerCase()}/devices`;
+      const payload = { access_token, username };
+      console.log('Add device payload:', payload, 'Endpoint:', endpoint);
+      const res = await axios.post(endpoint, payload, {
+        headers: {
+          accept: 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('Add device server response:', res.data);
+      setDeviceMsg('Device added successfully!');
+    } catch (err) {
+      if (err.response?.data?.message) {
+        setDeviceError(err.response.data.message);
+        console.error('Add device error:', err.response.data.message, err.response);
+      } else {
+        setDeviceError(err.message || 'Failed to add device');
+        console.error('Add device error:', err, err?.response);
+      }
+    }
   };
 
   const steps = ['Add Platform', 'Authorize Connection', 'Get API Key', 'Test Send'];
@@ -106,6 +137,19 @@ const OnboardingStepper = () => {
             <Box sx={{ mt: 2, display: 'inline-block' }}>
               <QRCodeCanvas value={`https://web.whatsapp.com//${platform.toLowerCase()}`} size={200} />
             </Box>
+            <Button variant="contained" color="primary" sx={{ mt: 3 }} onClick={handleAddDevice} disabled={!platform}>
+              Add Device
+            </Button>
+            {deviceMsg && (
+              <Typography color="success.main" sx={{ mt: 2 }}>
+                {deviceMsg}
+              </Typography>
+            )}
+            {deviceError && (
+              <Typography color="error.main" sx={{ mt: 2 }}>
+                {deviceError}
+              </Typography>
+            )}
           </Box>
         )}
 

@@ -18,6 +18,8 @@ import Typography from '@mui/material/Typography';
 // third-party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 // project imports
 import IconButton from 'components/@extended/IconButton';
@@ -31,8 +33,12 @@ import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
 
 export default function AuthLogin({ isDemo = false }) {
   const [checked, setChecked] = React.useState(false);
-
   const [showPassword, setShowPassword] = React.useState(false);
+  const [apiError, setApiError] = React.useState('');
+  const [successMsg, setSuccessMsg] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const navigate = useNavigate();
+
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -45,39 +51,78 @@ export default function AuthLogin({ isDemo = false }) {
     <>
       <Formik
         initialValues={{
-          email: 'janedoe@gmail.com',
-          password: '123456',
+          username: '',
+          password: '',
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+          username: Yup.string().max(255).required('Username is required'),
           password: Yup.string()
             .required('Password is required')
             .test('no-leading-trailing-whitespace', 'Password cannot start or end with spaces', (value) => value === value.trim())
-            .max(10, 'Password must be less than 10 characters')
+            .max(64, 'Password must be less than 64 characters')
         })}
+        onSubmit={async (values, { setSubmitting }) => {
+          setApiError('');
+          setSuccessMsg('');
+          setLoading(true);
+          try {
+            const res = await axios.post('https://sherlockwisdom.com:8080/login', {
+              username: values.username,
+              password: values.password
+            });
+            console.log('Login server response:', res.data);
+            if (res.data?.access_token && res.data?.status === 'logged in') {
+              localStorage.setItem('isAuthenticated', 'true');
+              localStorage.setItem('token', res.data.access_token);
+              setSuccessMsg('Login successful! Redirecting...');
+              setTimeout(() => {
+                navigate('/dashboard');
+              }, 1000);
+            } else {
+              setApiError('Login failed: Unexpected server response');
+              console.error('Login failed: Unexpected server response', res.data);
+            }
+          } catch (err) {
+            setApiError(err.response?.data?.message || err.message || 'Login failed');
+            console.error('Login error:', err, err?.response);
+          } finally {
+            setLoading(false);
+            setSubmitting(false);
+          }
+        }}
       >
-        {({ errors, handleBlur, handleChange, touched, values }) => (
-          <form noValidate>
+        {({ errors, handleBlur, handleChange, touched, values, handleSubmit }) => (
+          <form noValidate onSubmit={handleSubmit}>
             <Grid container spacing={3}>
+              {apiError && (
+                <Grid size={12}>
+                  <FormHelperText error>{apiError}</FormHelperText>
+                </Grid>
+              )}
+              {successMsg && (
+                <Grid size={12}>
+                  <FormHelperText>{successMsg}</FormHelperText>
+                </Grid>
+              )}
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="email-login">Email Address</InputLabel>
+                  <InputLabel htmlFor="username-login">Username</InputLabel>
                   <OutlinedInput
-                    id="email-login"
-                    type="email"
-                    value={values.email}
-                    name="email"
+                    id="username-login"
+                    type="text"
+                    value={values.username}
+                    name="username"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="Enter email address"
+                    placeholder="Enter username"
                     fullWidth
-                    error={Boolean(touched.email && errors.email)}
+                    error={Boolean(touched.username && errors.username)}
                   />
                 </Stack>
-                {touched.email && errors.email && (
-                  <FormHelperText error id="standard-weight-helper-text-email-login">
-                    {errors.email}
+                {touched.username && errors.username && (
+                  <FormHelperText error id="standard-weight-helper-text-username-login">
+                    {errors.username}
                   </FormHelperText>
                 )}
               </Grid>
@@ -87,7 +132,7 @@ export default function AuthLogin({ isDemo = false }) {
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.password && errors.password)}
-                    id="-password-login"
+                    id="password-login"
                     type={showPassword ? 'text' : 'password'}
                     value={values.password}
                     name="password"
@@ -129,15 +174,15 @@ export default function AuthLogin({ isDemo = false }) {
                     }
                     label={<Typography variant="h6">Keep me signed in</Typography>}
                   />
-                  <Link variant="h6" component={RouterLink} to="#" color="text.primary">
+                  {/* <Link variant="h6" component={RouterLink} to="#" color="text.primary">
                     Forgot Password?
-                  </Link>
+                  </Link> */}
                 </Stack>
               </Grid>
               <Grid size={12}>
                 <AnimateButton>
-                  <Button component="a" href="/dashboard" fullWidth size="large" variant="contained" color="primary">
-                    Login
+                  <Button type="submit" fullWidth size="large" variant="contained" color="primary" disabled={loading}>
+                    {loading ? 'Logging in...' : 'Login'}
                   </Button>
                 </AnimateButton>
               </Grid>
