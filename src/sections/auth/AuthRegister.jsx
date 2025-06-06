@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link as RouterLink, useSearchParams } from 'react-router-dom';
+import { Link as RouterLink, useSearchParams, useNavigate } from 'react-router-dom';
 
 // material-ui
 import Button from '@mui/material/Button';
@@ -17,6 +17,7 @@ import Box from '@mui/material/Box';
 // third-party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
+import axios from 'axios';
 
 // project imports
 import IconButton from 'components/@extended/IconButton';
@@ -33,6 +34,10 @@ import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
 export default function AuthRegister() {
   const [level, setLevel] = useState();
   const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -57,43 +62,88 @@ export default function AuthRegister() {
     <>
       <Formik
         initialValues={{
-          email: '',
+          username: '',
           password: '',
           repeatPassword: '',
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+          username: Yup.string().max(255).required('Username is required'),
           password: Yup.string()
             .required('Password is required')
             .test('no-leading-trailing-whitespace', 'Password cannot start or end with spaces', (value) => value === value.trim())
-            .max(10, 'Password must be less than 10 characters'),
+            .max(64, 'Password must be less than 64 characters'),
           repeatPassword: Yup.string()
             .required('Repeat Password is required')
             .oneOf([Yup.ref('password'), null], 'Passwords must match')
         })}
+        onSubmit={async (values, { setSubmitting, resetForm }) => {
+          setApiError('');
+          setSuccessMsg('');
+          setLoading(true);
+          try {
+            const res = await axios.post('https://sherlockwisdom.com:8080/', {
+              username: values.username,
+              password: values.password
+            });
+            console.log('Register server response:', res.data);
+            if (res.data?.access_token && (res.data?.status === 'created' || res.data?.status === 'logged in')) {
+              localStorage.setItem('isAuthenticated', 'true');
+              localStorage.setItem('token', res.data.access_token);
+              setSuccessMsg('Signup successful! Redirecting...');
+              setTimeout(() => {
+                resetForm();
+                navigate('/dashboard');
+              }, 1000);
+            } else {
+              setApiError(res.data?.message || 'Signup failed: Unexpected server response');
+              console.error('Signup failed: Unexpected server response', res.data);
+            }
+          } catch (err) {
+            if (err.response?.data?.message) {
+              setApiError(err.response.data.message);
+              console.error('Signup error:', err.response.data.message, err.response);
+            } else {
+              setApiError(err.message || 'Signup failed');
+              console.error('Signup error:', err, err?.response);
+            }
+          } finally {
+            setLoading(false);
+            setSubmitting(false);
+          }
+        }}
       >
-        {({ errors, handleBlur, handleChange, touched, values }) => (
-          <form noValidate>
+        {({ errors, handleBlur, handleChange, touched, values, handleSubmit }) => (
+          <form noValidate onSubmit={handleSubmit}>
             <Grid container spacing={3}>
+              {apiError && (
+                <Grid size={12}>
+                  <FormHelperText error>{apiError}</FormHelperText>
+                </Grid>
+              )}
+              {successMsg && (
+                <Grid size={12}>
+                  <FormHelperText>{successMsg}</FormHelperText>
+                </Grid>
+              )}
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="email-signup">Email Address*</InputLabel>
+                  <InputLabel htmlFor="username-signup">Username*</InputLabel>
                   <OutlinedInput
                     fullWidth
-                    error={Boolean(touched.email && errors.email)}
-                    id="email-signup"
-                    type="email"
-                    value={values.email}
-                    name="email"
+                    error={Boolean(touched.username && errors.username)}
+                    id="username-signup"
+                    type="text"
+                    value={values.username}
+                    name="username"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="demo@company.com"
+                    placeholder="Enter username"
                   />
                 </Stack>
-                {touched.email && errors.email && (
-                  <FormHelperText error id="helper-text-email-signup">
-                    {errors.email}
+                {touched.username && errors.username && (
+                  <FormHelperText error id="helper-text-username-signup">
+                    {errors.username}
                   </FormHelperText>
                 )}
               </Grid>
@@ -180,7 +230,7 @@ export default function AuthRegister() {
                   </FormHelperText>
                 )}
               </Grid>
-              <Grid size={12}>
+              {/* <Grid size={12}>
                 <Typography variant="body2">
                   By Signing up, you agree to our &nbsp;
                   <Link variant="subtitle2" component={RouterLink} to="#">
@@ -191,7 +241,7 @@ export default function AuthRegister() {
                     Privacy Policy
                   </Link>
                 </Typography>
-              </Grid>
+              </Grid> */}
               {errors.submit && (
                 <Grid size={12}>
                   <FormHelperText error>{errors.submit}</FormHelperText>
@@ -199,8 +249,8 @@ export default function AuthRegister() {
               )}
               <Grid size={12}>
                 <AnimateButton>
-                  <Button fullWidth size="large" variant="contained" color="primary">
-                    Create Account
+                  <Button fullWidth size="large" variant="contained" color="primary" type="submit" disabled={loading}>
+                    {loading ? 'Creating Account...' : 'Create Account'}
                   </Button>
                 </AnimateButton>
               </Grid>
