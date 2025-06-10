@@ -10,15 +10,19 @@ import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
 export default function DashboardDefault() {
+  const username = localStorage.getItem('username');
+
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
       {/* row 1 */}
       <Grid sx={{ mb: -2.25 }} size={12}>
-        <Typography variant="h5">Hi there 👋🏼</Typography>
+        <Typography variant="h5" sx={{ textTransform: 'capitalize' }}>
+          Hi {username ? `, ${username}` : ''}!👋🏼
+        </Typography>
       </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
+      {/* <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
         <AnalyticEcommerce title="Posts" count="0" extra="Number of Posts" />
-      </Grid>
+      </Grid> */}
       <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
         <AnalyticEcommerce title="Platforms" count="0" extra="Number of Platforms" />
       </Grid>

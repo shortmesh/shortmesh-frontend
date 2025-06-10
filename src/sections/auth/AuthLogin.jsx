@@ -75,6 +75,7 @@ export default function AuthLogin({ isDemo = false }) {
             if (res.data?.access_token && res.data?.status === 'logged in') {
               localStorage.setItem('isAuthenticated', 'true');
               localStorage.setItem('token', res.data.access_token);
+              localStorage.setItem('username', values.username); // Save username
               setSuccessMsg('Login successful! Redirecting...');
               setTimeout(() => {
                 navigate('/dashboard');

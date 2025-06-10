@@ -16,6 +16,17 @@ import WalletOutlined from '@ant-design/icons/WalletOutlined';
 // ==============================|| HEADER PROFILE - PROFILE TAB ||============================== //
 
 export default function ProfileTab() {
+  // Get username from localStorage
+  const username = localStorage.getItem('username') || 'User';
+
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    window.location.href = '/login';
+  };
+
   return (
     <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
       <ListItemButton>
@@ -24,26 +35,26 @@ export default function ProfileTab() {
         </ListItemIcon>
         <ListItemText primary="Edit Profile" />
       </ListItemButton>
-      <ListItemButton>
+      {/* <ListItemButton>
         <ListItemIcon>
           <UserOutlined />
         </ListItemIcon>
         <ListItemText primary="View Profile" />
-      </ListItemButton>
+      </ListItemButton> */}
 
-      <ListItemButton>
+      {/* <ListItemButton>
         <ListItemIcon>
           <ProfileOutlined />
         </ListItemIcon>
         <ListItemText primary="Social Profile" />
-      </ListItemButton>
-      <ListItemButton>
+      </ListItemButton> */}
+      {/* <ListItemButton>
         <ListItemIcon>
           <WalletOutlined />
         </ListItemIcon>
         <ListItemText primary="Billing" />
-      </ListItemButton>
-      <ListItemButton>
+      </ListItemButton> */}
+      <ListItemButton onClick={handleLogout}>
         <ListItemIcon>
           <LogoutOutlined />
         </ListItemIcon>

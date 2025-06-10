@@ -90,6 +90,7 @@ export default function AuthRegister() {
             if (res.data?.access_token && (res.data?.status === 'created' || res.data?.status === 'logged in')) {
               localStorage.setItem('isAuthenticated', 'true');
               localStorage.setItem('token', res.data.access_token);
+              localStorage.setItem('username', values.username); // Save username
               setSuccessMsg('Signup successful! Redirecting...');
               setTimeout(() => {
                 resetForm();

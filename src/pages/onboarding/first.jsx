@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Stepper, Step, StepLabel, Button, Typography, Box, Card, CardContent, IconButton, TextField, Avatar, Grid } from '@mui/material';
 import { QRCodeCanvas } from 'qrcode.react';
-import { CopyOutlined, SlackOutlined, WhatsAppOutlined, XOutlined } from '@ant-design/icons';
+import { CopyOutlined, SignalFilled, SlackOutlined, WhatsAppOutlined, XOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 
@@ -11,8 +11,8 @@ const platforms = [
     img: <WhatsAppOutlined />
   },
   {
-    name: 'X',
-    img: <XOutlined />
+    name: 'Signal',
+    img: <SignalFilled />
   },
   {
     name: 'Slack',
@@ -57,13 +57,13 @@ const OnboardingStepper = () => {
       setActiveStep(1);
     }, 200);
   };
-
+  const username = localStorage.getItem('username') || 'User';
   const handleAddDevice = async () => {
     setDeviceMsg('');
     setDeviceError('');
     try {
       const access_token = localStorage.getItem('token');
-      const username = 'vanessaigwe33';
+      const username = { username };
       const endpoint = `https://sherlockwisdom.com:8080/${platform.toLowerCase()}/devices`;
       const payload = { access_token, username };
       console.log('Add device payload:', payload, 'Endpoint:', endpoint);

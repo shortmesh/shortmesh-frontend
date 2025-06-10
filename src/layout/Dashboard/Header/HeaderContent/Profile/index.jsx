@@ -70,6 +70,15 @@ export default function Profile() {
     setValue(newValue);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    window.location.href = '/login';
+  };
+
+  const username = localStorage.getItem('username') || 'User';
+
   return (
     <Box sx={{ flexShrink: 0, ml: 0.75 }}>
       <ButtonBase
@@ -90,7 +99,7 @@ export default function Profile() {
         <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center', p: 0.5 }}>
           <Avatar alt="profile user" src={avatar1} size="sm" />
           <Typography variant="subtitle1" sx={{ textTransform: 'capitalize' }}>
-            [User]
+            {username}
           </Typography>
         </Stack>
       </ButtonBase>
@@ -123,7 +132,9 @@ export default function Profile() {
                         <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center' }}>
                           <Avatar alt="profile user" src={avatar1} sx={{ width: 32, height: 32 }} />
                           <Stack>
-                            <Typography variant="h6">John Doe</Typography>
+                            <Typography variant="h6" sx={{ textTransform: 'capitalize' }}>
+                              {username}
+                            </Typography>
                             {/* <Typography variant="body2" color="text.secondary">
                               UI/UX Designer
                             </Typography> */}
@@ -132,7 +143,7 @@ export default function Profile() {
                       </Grid>
                       <Grid>
                         <Tooltip title="Logout">
-                          <IconButton size="large" sx={{ color: 'text.primary' }}>
+                          <IconButton onClick={handleLogout} size="large" sx={{ color: 'text.primary' }}>
                             <LogoutOutlined />
                           </IconButton>
                         </Tooltip>
