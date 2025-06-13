@@ -32,26 +32,26 @@ export default function SettingTab() {
   return (
     <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
       <Link underline="none" sx={{ color: 'inherit' }} target="_blank" href="https://afkanerd.com/">
-        <ListItemButton selected={selectedIndex === 0} onClick={(event) => handleListItemClick(event, 0)}>
+        <ListItemButton selected={selectedIndex === 0} onClick={(event) => handleListItemClick(event, 0, '/documentation')}>
           <ListItemIcon>
             <QuestionCircleOutlined />
           </ListItemIcon>
           <ListItemText primary="Support" />
         </ListItemButton>
       </Link>
-      <ListItemButton selected={selectedIndex === 1} onClick={(event) => handleListItemClick(event, 1)}>
+      <ListItemButton selected={selectedIndex === 1} onClick={(event) => handleListItemClick(event, 1, '/settings')}>
         <ListItemIcon>
           <UserOutlined />
         </ListItemIcon>
-        <ListItemText primary="Account Settings" component="a" href="/settings" />
+        <ListItemText primary="Account Settings" />
       </ListItemButton>
-      <ListItemButton selected={selectedIndex === 2} onClick={(event) => handleListItemClick(event, 2)}>
+      {/* <ListItemButton selected={selectedIndex === 2} onClick={(event) => handleListItemClick(event, 2)}>
         <ListItemIcon>
           <LockOutlined />
         </ListItemIcon>
         <ListItemText primary="Privacy Center" />
-      </ListItemButton>
-      <Link underline="none" style={{ color: 'inherit' }} target="_blank" href="https://afkanerd.com/">
+      </ListItemButton> */}
+      <Link underline="none" style={{ color: 'inherit' }} target="_blank" href="https://github.com/shortmesh/shortmesh-frontend/issues">
         <ListItemButton selected={selectedIndex === 3} onClick={(event) => handleListItemClick(event, 3)}>
           <ListItemIcon>
             <CommentOutlined />
