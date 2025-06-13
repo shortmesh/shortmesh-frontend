@@ -12,13 +12,7 @@ import { useState } from 'react';
 import { CopyOutlined } from '@ant-design/icons';
 
 export default function ApiKeys() {
-  let initialKeys = [];
-  try {
-    initialKeys = JSON.parse(localStorage.getItem('apiKeys') || '[]');
-  } catch {
-    initialKeys = [];
-  }
-  const [apiKeys] = useState(initialKeys);
+  const apiKey = localStorage.getItem('token') || '';
   const [copiedKey, setCopiedKey] = useState('');
 
   const handleCopy = (key) => {
@@ -34,28 +28,26 @@ export default function ApiKeys() {
       </Grid>
       <Grid size={12}>
         <Box sx={{ mt: 2 }}>
-          {apiKeys.length === 0 ? (
+          {!apiKey ? (
             <Typography variant="body1" color="text.secondary">
               No API keys have been added yet.
             </Typography>
           ) : (
             <List>
-              {apiKeys.map((key, idx) => (
-                <MainCard key={key} sx={{ mb: 2, p: 0 }}>
-                  <ListItem
-                    secondaryAction={
-                      <IconButton edge="end" aria-label="copy" onClick={() => handleCopy(key)}>
-                        <CopyOutlined />
-                      </IconButton>
-                    }
-                  >
-                    <ListItemIcon>
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'primary.main', mr: 1 }} />
-                    </ListItemIcon>
-                    <ListItemText primary={key} secondary={copiedKey === key ? 'Copied!' : null} sx={{ wordBreak: 'break-all' }} />
-                  </ListItem>
-                </MainCard>
-              ))}
+              <MainCard key={apiKey} sx={{ mb: 2, p: 0 }}>
+                <ListItem
+                  secondaryAction={
+                    <IconButton edge="end" aria-label="copy" onClick={() => handleCopy(apiKey)}>
+                      <CopyOutlined />
+                    </IconButton>
+                  }
+                >
+                  <ListItemIcon>
+                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'primary.main', mr: 1 }} />
+                  </ListItemIcon>
+                  <ListItemText primary={apiKey} secondary={copiedKey === apiKey ? 'Copied!' : null} sx={{ wordBreak: 'break-all' }} />
+                </ListItem>
+              </MainCard>
             </List>
           )}
         </Box>

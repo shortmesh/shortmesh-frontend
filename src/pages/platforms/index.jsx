@@ -57,16 +57,16 @@ export default function Platforms() {
   }
   const [platforms, setPlatforms] = useState(initialPlatforms);
 
-  // Add device/onboarding state
   const [addingPlatform, setAddingPlatform] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState('');
+  const [pendingPlatform, setPendingPlatform] = useState('');
   const [deviceMsg, setDeviceMsg] = useState('');
   const [deviceError, setDeviceError] = useState('');
   const [wsQrData, setWsQrData] = useState('');
   const [loadingQr, setLoadingQr] = useState(false);
+  const [qrTimeout, setQrTimeout] = useState(null);
   const wsRef = useRef(null);
 
-  // Add platform handler (from onboarding/first.jsx)
   const handleAddPlatformClick = () => {
     setAddingPlatform(true);
     setSelectedPlatform('');
@@ -82,10 +82,12 @@ export default function Platforms() {
 
   const handlePlatformSelect = async (name) => {
     setSelectedPlatform(name);
+    setPendingPlatform(name);
     setDeviceMsg('');
     setDeviceError('');
     setWsQrData('');
     setLoadingQr(false);
+    if (qrTimeout) clearTimeout(qrTimeout);
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
@@ -108,49 +110,67 @@ export default function Platforms() {
         }
       });
       console.log('Add device server response:', res.data);
-      setDeviceMsg('Device added successfully!');
-      // Save platform to localStorage if not already present
-      let savedPlatforms = [];
-      try {
-        savedPlatforms = JSON.parse(localStorage.getItem('platforms') || '[]');
-        if (!savedPlatforms.includes(name)) {
-          savedPlatforms.push(name);
-          localStorage.setItem('platforms', JSON.stringify(savedPlatforms));
-          setPlatforms(savedPlatforms);
-        }
-      } catch (e) {
-        localStorage.setItem('platforms', JSON.stringify([name]));
-        setPlatforms([name]);
-      }
+      setDeviceMsg('Device added successfully! Waiting for QR code...');
+
       if (res.data?.websocket_url) {
         let wsUrl = res.data.websocket_url;
         if (wsUrl.startsWith('/')) {
           wsUrl = `wss://sherlockwisdom.com:8090${wsUrl}`;
         }
-        setLoadingQr(true);
+
         try {
           wsRef.current = new window.WebSocket(wsUrl);
+          wsRef.current.binaryType = 'blob';
+          const timeout = setTimeout(() => {
+            setLoadingQr(false);
+            setDeviceError('QR code did not arrive in time. Please try again.');
+          }, 60000); // 1 minute
+          setQrTimeout(timeout);
+
           wsRef.current.onopen = () => {
             console.log('WebSocket connected:', wsUrl);
           };
+
           wsRef.current.onmessage = (event) => {
-            console.log('WebSocket message:', event.data);
-            try {
-              const parsed = JSON.parse(event.data);
-              console.log('WebSocket parsed message:', parsed);
-            } catch {
-              console.log('WebSocket raw message:', event.data);
-            }
-            setWsQrData(event.data);
+            clearTimeout(timeout);
             setLoadingQr(false);
+            if (event.data instanceof Blob) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                setQrImage(e.target.result);
+                setDeviceMsg('QR code received successfully!');
+                setActiveStep(1);
+              };
+              reader.onerror = function () {
+                setDeviceError('Error reading binary image data.');
+                setLoadingQr(false);
+              };
+              reader.readAsDataURL(event.data);
+            } else if (typeof event.data === 'string') {
+              if (event.data.startsWith('data:image/')) {
+                setQrImage(event.data);
+              } else {
+                setQrImage(`data:image/png;base64,${event.data}`);
+              }
+              setDeviceMsg('QR code received successfully!');
+              setActiveStep(1);
+            } else {
+              setDeviceError('Received unsupported data type for QR code.');
+              setLoadingQr(false);
+            }
           };
+
           wsRef.current.onerror = (error) => {
             console.error('WebSocket error:', error);
             setDeviceError('WebSocket connection failed. Please ensure the backend WebSocket endpoint is running and accessible.');
             setLoadingQr(false);
           };
+
           wsRef.current.onclose = (event) => {
             console.log('WebSocket closed', event, `code: ${event.code}`, `reason: ${event.reason}`, `wasClean: ${event.wasClean}`);
+            if (!event.wasClean && event.code !== 1000) {
+              setDeviceError(`WebSocket closed unexpectedly (code: ${event.code}, reason: ${event.reason})`);
+            }
             setLoadingQr(false);
           };
         } catch (wsErr) {
@@ -158,6 +178,9 @@ export default function Platforms() {
           setDeviceError('WebSocket connection error. Please check your backend and network.');
           setLoadingQr(false);
         }
+      } else {
+        setDeviceError('WebSocket URL not provided by the server.');
+        setLoadingQr(false);
       }
     } catch (err) {
       if (err.response?.data?.message) {
@@ -167,10 +190,10 @@ export default function Platforms() {
         setDeviceError(err.message || 'Failed to add device');
         console.error('Add device error:', err, err?.response);
       }
+      setLoadingQr(false);
     }
   };
 
-  // Cleanup websocket on unmount
   useEffect(() => {
     return () => {
       if (wsRef.current) {
@@ -181,8 +204,23 @@ export default function Platforms() {
   }, []);
 
   const handleFinishAddPlatform = () => {
+    if (pendingPlatform) {
+      let savedPlatforms = [];
+      try {
+        savedPlatforms = JSON.parse(localStorage.getItem('platforms') || '[]');
+        if (!savedPlatforms.includes(pendingPlatform)) {
+          savedPlatforms.push(pendingPlatform);
+          localStorage.setItem('platforms', JSON.stringify(savedPlatforms));
+          setPlatforms(savedPlatforms);
+        }
+      } catch (e) {
+        localStorage.setItem('platforms', JSON.stringify([pendingPlatform]));
+        setPlatforms([pendingPlatform]);
+      }
+    }
     setAddingPlatform(false);
     setSelectedPlatform('');
+    setPendingPlatform('');
     setDeviceMsg('');
     setDeviceError('');
     setWsQrData('');
@@ -278,7 +316,6 @@ export default function Platforms() {
                 </>
               ) : (
                 <>
-                  {/* Loader and QR code display */}
                   {loadingQr && (
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
                       <CircularProgress sx={{ mb: 2 }} />
@@ -306,7 +343,6 @@ export default function Platforms() {
             </Box>
           )}
 
-          {/* List of added platforms */}
           {platforms.length === 0 ? (
             <Typography variant="body1" color="text.secondary">
               No platforms have been added yet.
