@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router';
 
 // material-ui
 import List from '@mui/material/List';
@@ -16,8 +17,8 @@ import WalletOutlined from '@ant-design/icons/WalletOutlined';
 // ==============================|| HEADER PROFILE - PROFILE TAB ||============================== //
 
 export default function ProfileTab() {
-  // Get username from localStorage
   const username = localStorage.getItem('username') || 'User';
+  const navigate = useNavigate();
 
   // Logout handler
   const handleLogout = () => {
@@ -29,7 +30,7 @@ export default function ProfileTab() {
 
   return (
     <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
-      <ListItemButton>
+      <ListItemButton onClick={() => navigate('/settings')}>
         <ListItemIcon>
           <EditOutlined />
         </ListItemIcon>
