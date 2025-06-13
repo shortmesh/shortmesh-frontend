@@ -251,7 +251,7 @@ export default function Platforms() {
       <Grid size={12}>
         <Box sx={{ mt: 2 }}>
           <Button startIcon={<PlusOutlined />} variant="contained" color="primary" onClick={handleAddPlatformClick} sx={{ mb: 3 }}>
-            Add Platform
+            Add Device
           </Button>
           {/* Add Platform Flow */}
           {addingPlatform && (

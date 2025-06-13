@@ -218,11 +218,36 @@ export default function DashboardDefault() {
         <AnalyticEcommerce title="API Keys" count={apiKeysCount} extra="Number of API Keys" />
       </Grid>
 
+      {/* API Key Display */}
+      <Grid size={12}>
+        <MainCard title="API Key">
+          {!apiKey ? (
+            <Typography variant="body2" color="text.secondary">
+              No API key found.
+            </Typography>
+          ) : (
+            <List>
+              <ListItem
+                key={apiKey}
+                secondaryAction={
+                  <IconButton edge="end" aria-label="copy" onClick={() => handleCopy(apiKey)}>
+                    <CopyOutlined />
+                  </IconButton>
+                }
+                sx={{ pl: 0 }}
+              >
+                <ListItemText primary={apiKey} secondary={copiedKey === apiKey ? 'Copied!' : null} sx={{ wordBreak: 'break-all' }} />
+              </ListItem>
+            </List>
+          )}
+        </MainCard>
+      </Grid>
+
       {/* Add Platform Button */}
       <Grid size={12}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1 }}>
           <Button variant="contained" color="primary" startIcon={<PlusOutlined />} onClick={handleAddPlatformClick}>
-            Add Platform
+            Add Device
           </Button>
         </Box>
       </Grid>
@@ -356,31 +381,6 @@ export default function DashboardDefault() {
                   <ListItemText primary={name} />
                 </ListItem>
               ))}
-            </List>
-          )}
-        </MainCard>
-      </Grid>
-
-      {/* API Key Display */}
-      <Grid size={12}>
-        <MainCard title="API Key">
-          {!apiKey ? (
-            <Typography variant="body2" color="text.secondary">
-              No API key found.
-            </Typography>
-          ) : (
-            <List>
-              <ListItem
-                key={apiKey}
-                secondaryAction={
-                  <IconButton edge="end" aria-label="copy" onClick={() => handleCopy(apiKey)}>
-                    <CopyOutlined />
-                  </IconButton>
-                }
-                sx={{ pl: 0 }}
-              >
-                <ListItemText primary={apiKey} secondary={copiedKey === apiKey ? 'Copied!' : null} sx={{ wordBreak: 'break-all' }} />
-              </ListItem>
             </List>
           )}
         </MainCard>
