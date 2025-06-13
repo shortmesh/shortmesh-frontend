@@ -26,6 +26,11 @@ jobs:
           corepack enable
           corepack prepare yarn@stable --activate
 
+      - name: Configure Environment Variables
+        run: |
+          echo "VITE_APP_API_URL=${{ vars.API_URL }}" >> .env.local
+          echo "VITE_APP_WEBSOCKET_URL=${{ vars.WEBSOCKET_URL }}" >> .env.local
+
       - name: Install dependencies
         run: |
           yarn install
