@@ -43,7 +43,7 @@ export default function SettingTab() {
         <ListItemIcon>
           <UserOutlined />
         </ListItemIcon>
-        <ListItemText primary="Account Settings" />
+        <ListItemText primary="Account Settings" component="a" href="/settings" />
       </ListItemButton>
       <ListItemButton selected={selectedIndex === 2} onClick={(event) => handleListItemClick(event, 2)}>
         <ListItemIcon>
@@ -59,12 +59,12 @@ export default function SettingTab() {
           <ListItemText primary="Feedback" />
         </ListItemButton>
       </Link>
-      <ListItemButton selected={selectedIndex === 4} onClick={(event) => handleListItemClick(event, 4)}>
+      {/* <ListItemButton selected={selectedIndex === 4} onClick={(event) => handleListItemClick(event, 4)}>
         <ListItemIcon>
           <UnorderedListOutlined />
         </ListItemIcon>
         <ListItemText primary="History" />
-      </ListItemButton>
+      </ListItemButton> */}
     </List>
   );
 }

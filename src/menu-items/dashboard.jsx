@@ -39,14 +39,14 @@ const dashboard = {
       icon: icons.DashboardOutlined,
       breadcrumbs: false
     },
-    {
-      id: 'posts',
-      title: 'Posts',
-      type: 'item',
-      url: '/posts',
-      icon: icons.CommentOutlined,
-      breadcrumbs: false
-    },
+    // {
+    //   id: 'posts',
+    //   title: 'Posts',
+    //   type: 'item',
+    //   url: '/posts',
+    //   icon: icons.CommentOutlined,
+    //   breadcrumbs: false
+    // },
     {
       id: 'platforms',
       title: 'Platforms',
@@ -55,14 +55,14 @@ const dashboard = {
       icon: icons.UsergroupAddOutlined,
       breadcrumbs: false
     },
-    {
-      id: 'analytics',
-      title: 'Analytics',
-      type: 'item',
-      url: '/analytics',
-      icon: icons.RiseOutlined,
-      breadcrumbs: false
-    },
+    // {
+    //   id: 'analytics',
+    //   title: 'Analytics',
+    //   type: 'item',
+    //   url: '/analytics',
+    //   icon: icons.RiseOutlined,
+    //   breadcrumbs: false
+    // },
     {
       id: 'api-keys',
       title: 'API Keys',
@@ -71,14 +71,14 @@ const dashboard = {
       icon: icons.ApiOutlined,
       breadcrumbs: false
     },
-    {
-      id: 'subscription',
-      title: 'Subscription & Billing',
-      type: 'item',
-      url: '/subscription',
-      icon: icons.CreditCardOutlined,
-      breadcrumbs: false
-    },
+    // {
+    //   id: 'subscription',
+    //   title: 'Subscription & Billing',
+    //   type: 'item',
+    //   url: '/subscription',
+    //   icon: icons.CreditCardOutlined,
+    //   breadcrumbs: false
+    // },
     {
       id: 'settings',
       title: 'Settings',

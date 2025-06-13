@@ -8,12 +8,12 @@ export default function Footer() {
     <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', p: '24px 16px 0px', mt: 'auto' }}>
       <Typography variant="caption">
         &copy; All rights reserved{' '}
-        <Link href="https://smswithoutborders.com/" target="_blank" underline="hover">
-          SMSWithoutBorders
+        <Link href="https://afkanerd.com/" target="_blank" underline="hover">
+          Afkanerd
         </Link>
       </Typography>
       <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center', justifyContent: 'space-between' }}>
-        <Link href="https://smswithoutborders.com/" target="_blank" variant="caption" color="text.primary">
+        <Link href="https://afkanerd.com/" target="_blank" variant="caption" color="text.primary">
           About us
         </Link>
         <Link href="https://smswithoutborders.com/privacy-policy" target="_blank" variant="caption" color="text.primary">

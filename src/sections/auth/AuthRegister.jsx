@@ -90,23 +90,26 @@ export default function AuthRegister() {
             if (res.data?.access_token && (res.data?.status === 'created' || res.data?.status === 'logged in')) {
               localStorage.setItem('isAuthenticated', 'true');
               localStorage.setItem('token', res.data.access_token);
+              localStorage.setItem('username', values.username); // Save username
               setSuccessMsg('Signup successful! Redirecting...');
               setTimeout(() => {
                 resetForm();
                 navigate('/dashboard');
               }, 1000);
             } else {
-              setApiError(res.data?.message || 'Signup failed: Unexpected server response');
+              // Improved error message
+              const errMsg =
+                [res.data?.error, res.data?.details, res.data?.message].filter(Boolean).join(' - ') ||
+                'Signup failed: Unexpected server response';
+              setApiError(errMsg);
               console.error('Signup failed: Unexpected server response', res.data);
             }
           } catch (err) {
-            if (err.response?.data?.message) {
-              setApiError(err.response.data.message);
-              console.error('Signup error:', err.response.data.message, err.response);
-            } else {
-              setApiError(err.message || 'Signup failed');
-              console.error('Signup error:', err, err?.response);
-            }
+            // Improved error message
+            const data = err.response?.data;
+            const errMsg = [data?.error, data?.details, data?.message, err.message].filter(Boolean).join(' - ') || 'Signup failed';
+            setApiError(errMsg);
+            console.error('Signup error:', errMsg, err?.response);
           } finally {
             setLoading(false);
             setSubmitting(false);

@@ -75,17 +75,25 @@ export default function AuthLogin({ isDemo = false }) {
             if (res.data?.access_token && res.data?.status === 'logged in') {
               localStorage.setItem('isAuthenticated', 'true');
               localStorage.setItem('token', res.data.access_token);
+              localStorage.setItem('username', values.username); // Save username
               setSuccessMsg('Login successful! Redirecting...');
               setTimeout(() => {
                 navigate('/dashboard');
               }, 1000);
             } else {
-              setApiError('Login failed: Unexpected server response');
+              // Improved error message
+              const errMsg =
+                [res.data?.error, res.data?.details, res.data?.message].filter(Boolean).join(' - ') ||
+                'Login failed: Unexpected server response';
+              setApiError(errMsg);
               console.error('Login failed: Unexpected server response', res.data);
             }
           } catch (err) {
-            setApiError(err.response?.data?.message || err.message || 'Login failed');
-            console.error('Login error:', err, err?.response);
+            // Improved error message
+            const data = err.response?.data;
+            const errMsg = [data?.error, data?.details, data?.message, err.message].filter(Boolean).join(' - ') || 'Login failed';
+            setApiError(errMsg);
+            console.error('Login error:', errMsg, err?.response);
           } finally {
             setLoading(false);
             setSubmitting(false);
