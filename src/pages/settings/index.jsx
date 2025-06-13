@@ -23,13 +23,10 @@ const platformIcons = {
 export default function Settings() {
   const username = localStorage.getItem('username') || 'User';
   let platforms = [];
-  let apiKeys = [];
   try {
     platforms = JSON.parse(localStorage.getItem('platforms') || '[]');
   } catch {}
-  try {
-    apiKeys = JSON.parse(localStorage.getItem('apiKeys') || '[]');
-  } catch {}
+  const apiKey = localStorage.getItem('token') || '';
 
   const [copiedKey, setCopiedKey] = useState('');
 
@@ -62,7 +59,6 @@ export default function Settings() {
               </Typography>
             </Box>
           </Box>
-          {/* Move logout button to the end of the card */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button variant="outlined" color="error" onClick={handleLogout}>
               Logout
@@ -71,7 +67,6 @@ export default function Settings() {
         </MainCard>
       </Grid>
 
-      {/* Platforms */}
       <Grid size={12}>
         <MainCard title="Connected Platforms">
           {platforms.length === 0 ? (
@@ -91,34 +86,30 @@ export default function Settings() {
         </MainCard>
       </Grid>
 
-      {/* API Keys */}
       <Grid size={12}>
         <MainCard title="API Keys">
-          {apiKeys.length === 0 ? (
+          {!apiKey ? (
             <Typography variant="body2" color="text.secondary">
               No API keys found.
             </Typography>
           ) : (
             <List>
-              {apiKeys.map((key) => (
-                <ListItem
-                  key={key}
-                  secondaryAction={
-                    <IconButton edge="end" aria-label="copy" onClick={() => handleCopy(key)}>
-                      <CopyOutlined />
-                    </IconButton>
-                  }
-                  sx={{ pl: 0 }}
-                >
-                  <ListItemText primary={key} secondary={copiedKey === key ? 'Copied!' : null} sx={{ wordBreak: 'break-all' }} />
-                </ListItem>
-              ))}
+              <ListItem
+                key={apiKey}
+                secondaryAction={
+                  <IconButton edge="end" aria-label="copy" onClick={() => handleCopy(apiKey)}>
+                    <CopyOutlined />
+                  </IconButton>
+                }
+                sx={{ pl: 0 }}
+              >
+                <ListItemText primary={apiKey} secondary={copiedKey === apiKey ? 'Copied!' : null} sx={{ wordBreak: 'break-all' }} />
+              </ListItem>
             </List>
           )}
         </MainCard>
       </Grid>
 
-      {/* Divider and Info */}
       <Grid size={12}>
         <Divider sx={{ my: 3 }} />
         <Typography variant="caption" color="text.secondary">

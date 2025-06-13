@@ -14,7 +14,6 @@ import {
   Grid,
   Alert
 } from '@mui/material';
-import { QRCodeCanvas } from 'qrcode.react';
 import { CopyOutlined, WhatsAppOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
@@ -47,14 +46,15 @@ const platforms = [
 const OnboardingStepper = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [platform, setPlatform] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(false); // This state isn't used in the provided code
   const [deviceMsg, setDeviceMsg] = useState('');
   const [deviceError, setDeviceError] = useState('');
-  const [wsQrData, setWsQrData] = useState('');
+  const [wsQrData, setWsQrData] = useState(''); // This state isn't directly used for display after changes
   const [loadingQr, setLoadingQr] = useState(false);
+  const [qrImage, setQrImage] = useState(null); // Stores the data URL for the QR code image
   const wsRef = useRef(null);
 
-  const apiKey = 'sk_live_12345-abcdef-ghijk';
+  const apiKey = 'sk_live_12345-abcdef-ghijk'; // This variable isn't used in the provided code
   const navigate = useNavigate();
 
   const steps = ['Add Platform', 'Scan QR Code'];
@@ -63,12 +63,15 @@ const OnboardingStepper = () => {
     setPlatform(name);
     setDeviceMsg('');
     setDeviceError('');
-    setWsQrData('');
-    setLoadingQr(false);
+    setWsQrData(''); // Clear any old QR data
+    setLoadingQr(true); // Start loading when platform is selected
+    setQrImage(null); // Clear previous QR image
+
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
     }
+
     try {
       const access_token = localStorage.getItem('token');
       const username = localStorage.getItem('username') || 'User';
@@ -80,58 +83,70 @@ const OnboardingStepper = () => {
         access_token
       };
       console.log('Add device payload:', payload, 'Endpoint:', endpoint);
+
       const res = await axios.post(endpoint, payload, {
         headers: {
           accept: 'application/json',
           'Content-Type': 'application/json'
         }
       });
+
       console.log('Add device server response:', res.data);
-      setDeviceMsg('Device added successfully!');
-      // Save platform to localStorage
-      let savedPlatforms = [];
-      try {
-        savedPlatforms = JSON.parse(localStorage.getItem('platforms') || '[]');
-        if (!savedPlatforms.includes(name)) {
-          savedPlatforms.push(name);
-          localStorage.setItem('platforms', JSON.stringify(savedPlatforms));
-        }
-      } catch (e) {
-        // fallback in case of JSON parse error
-        localStorage.setItem('platforms', JSON.stringify([name]));
-      }
+      setDeviceMsg('Device added successfully! Waiting for QR code...');
+
       if (res.data?.websocket_url) {
         let wsUrl = res.data.websocket_url;
         if (wsUrl.startsWith('/')) {
           wsUrl = `wss://sherlockwisdom.com:8090${wsUrl}`;
         }
-        setLoadingQr(true);
+
         try {
           wsRef.current = new window.WebSocket(wsUrl);
+          wsRef.current.binaryType = 'blob';
+
           wsRef.current.onopen = () => {
             console.log('WebSocket connected:', wsUrl);
           };
+
           wsRef.current.onmessage = (event) => {
-            console.log('WebSocket message:', event.data);
-            try {
-              const parsed = JSON.parse(event.data);
-              console.log('WebSocket parsed message:', parsed);
-            } catch {
-              console.log('WebSocket raw message:', event.data);
+            console.log('WebSocket message received:', event.data);
+            setLoadingQr(false);
+
+            if (event.data instanceof Blob) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                setQrImage(e.target.result);
+                setActiveStep(1);
+              };
+              reader.onerror = function () {
+                setDeviceError('Error reading binary image data.');
+                setLoadingQr(false);
+              };
+              reader.readAsDataURL(event.data);
+            } else if (typeof event.data === 'string') {
+              if (event.data.startsWith('data:image/')) {
+                setQrImage(event.data);
+              } else {
+                setQrImage(`data:image/png;base64,${event.data}`);
+              }
+              setActiveStep(1);
+            } else {
+              setDeviceError('Received unsupported data type for QR code.');
+              setLoadingQr(false);
             }
-            setWsQrData(event.data);
-            setLoadingQr(false); // Stop loader when QR is received
-            // Automatically move to next step when QR is received
-            setActiveStep(1);
           };
+
           wsRef.current.onerror = (error) => {
             console.error('WebSocket error:', error);
             setDeviceError('WebSocket connection failed. Please ensure the backend WebSocket endpoint is running and accessible.');
             setLoadingQr(false);
           };
+
           wsRef.current.onclose = (event) => {
             console.log('WebSocket closed', event, `code: ${event.code}`, `reason: ${event.reason}`, `wasClean: ${event.wasClean}`);
-            setDeviceError(`WebSocket closed (code: ${event.code}, reason: ${event.reason})`);
+            if (!event.wasClean && event.code !== 1000) {
+              setDeviceError(`WebSocket closed unexpectedly (code: ${event.code}, reason: ${event.reason})`);
+            }
             setLoadingQr(false);
           };
         } catch (wsErr) {
@@ -139,8 +154,10 @@ const OnboardingStepper = () => {
           setDeviceError('WebSocket connection error. Please check your backend and network.');
           setLoadingQr(false);
         }
+      } else {
+        setDeviceError('WebSocket URL not provided by the server.');
+        setLoadingQr(false);
       }
-      // Remove: setActiveStep(1);
     } catch (err) {
       if (err.response?.data?.message) {
         setDeviceError(err.response.data.message);
@@ -149,10 +166,23 @@ const OnboardingStepper = () => {
         setDeviceError(err.message || 'Failed to add device');
         console.error('Add device error:', err, err?.response);
       }
+      setLoadingQr(false);
     }
   };
 
   const handleFinish = () => {
+    if (platform) {
+      let savedPlatforms = [];
+      try {
+        savedPlatforms = JSON.parse(localStorage.getItem('platforms') || '[]');
+        if (!savedPlatforms.includes(platform)) {
+          savedPlatforms.push(platform);
+          localStorage.setItem('platforms', JSON.stringify(savedPlatforms));
+        }
+      } catch (e) {
+        localStorage.setItem('platforms', JSON.stringify([platform]));
+      }
+    }
     localStorage.setItem('hasOnboarded', 'true');
     navigate('/dashboard');
   };
@@ -239,21 +269,48 @@ const OnboardingStepper = () => {
 
         {activeStep === 1 && (
           <Box>
-            {/* Loader and QR code display */}
             {loadingQr && (
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
                 <CircularProgress sx={{ mb: 2 }} />
                 <Typography variant="body2">Waiting for QR code from device...</Typography>
               </Box>
             )}
-            {!loadingQr && wsQrData ? (
+            {!loadingQr && qrImage ? (
               <Box sx={{ textAlign: 'center', mb: 2 }}>
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
                   Scan this QR Code with your device
                 </Typography>
-                <QRCodeCanvas value={wsQrData} size={200} />
+                <Box
+                  sx={{
+                    display: 'inline-block',
+                    background: '#fff',
+                    border: '4px solid #1976d2',
+                    borderRadius: 2,
+                    p: 2,
+                    boxShadow: 2
+                  }}
+                >
+                  <img
+                    src={qrImage}
+                    alt="QR Code"
+                    style={{
+                      width: 320,
+                      height: 320,
+                      maxWidth: '90vw',
+                      maxHeight: '90vw',
+                      imageRendering: 'pixelated',
+                      background: '#fff',
+                      display: 'block'
+                    }}
+                  />
+                </Box>
               </Box>
             ) : null}
+            {!loadingQr && !qrImage && !deviceError && (
+              <Typography variant="body2" textAlign="center" color="text.secondary">
+                Select a platform to generate a QR code.
+              </Typography>
+            )}
             <Button variant="contained" color="success" sx={{ mt: 2 }} onClick={handleFinish}>
               Finish
             </Button>
