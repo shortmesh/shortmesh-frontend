@@ -82,7 +82,8 @@ export default function AuthRegister() {
           setSuccessMsg('');
           setLoading(true);
           try {
-            const res = await axios.post('https://sherlockwisdom.com:8080/', {
+            const API_URL = import.meta.env.VITE_APP_API_URL;
+            const res = await axios.post(`${API_URL}/`, {
               username: values.username,
               password: values.password
             });

@@ -43,18 +43,20 @@ const platforms = [
   }
 ];
 
+const API_URL = import.meta.env.VITE_APP_API_URL;
+const WS_URL = import.meta.env.VITE_APP_WEBSOCKET_URL;
+
 const OnboardingStepper = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [platform, setPlatform] = useState('');
-  const [copied, setCopied] = useState(false); // This state isn't used in the provided code
+  const [copied, setCopied] = useState(false);
   const [deviceMsg, setDeviceMsg] = useState('');
   const [deviceError, setDeviceError] = useState('');
-  const [wsQrData, setWsQrData] = useState(''); // This state isn't directly used for display after changes
+  const [wsQrData, setWsQrData] = useState('');
   const [loadingQr, setLoadingQr] = useState(false);
-  const [qrImage, setQrImage] = useState(null); // Stores the data URL for the QR code image
+  const [qrImage, setQrImage] = useState(null);
   const wsRef = useRef(null);
 
-  const apiKey = 'sk_live_12345-abcdef-ghijk'; // This variable isn't used in the provided code
   const navigate = useNavigate();
 
   const steps = ['Add Platform', 'Scan QR Code'];
@@ -63,9 +65,9 @@ const OnboardingStepper = () => {
     setPlatform(name);
     setDeviceMsg('');
     setDeviceError('');
-    setWsQrData(''); // Clear any old QR data
-    setLoadingQr(true); // Start loading when platform is selected
-    setQrImage(null); // Clear previous QR image
+    setWsQrData('');
+    setLoadingQr(true);
+    setQrImage(null);
 
     if (wsRef.current) {
       wsRef.current.close();
@@ -77,7 +79,7 @@ const OnboardingStepper = () => {
       const username = localStorage.getItem('username') || 'User';
       let platformKey = name.toLowerCase();
       if (platformKey === 'whatsapp') platformKey = 'wa';
-      const endpoint = `https://sherlockwisdom.com:8080/${platformKey}/devices`;
+      const endpoint = `${API_URL}/${platformKey}/devices`;
       const payload = {
         username,
         access_token
@@ -97,7 +99,7 @@ const OnboardingStepper = () => {
       if (res.data?.websocket_url) {
         let wsUrl = res.data.websocket_url;
         if (wsUrl.startsWith('/')) {
-          wsUrl = `wss://sherlockwisdom.com:8090${wsUrl}`;
+          wsUrl = `${WS_URL}${wsUrl}`;
         }
 
         try {

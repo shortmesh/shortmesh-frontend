@@ -21,6 +21,9 @@ import { useState, useRef, useEffect } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_APP_API_URL;
+const WS_URL = import.meta.env.VITE_APP_WEBSOCKET_URL;
+
 const platformStyles = {
   WhatsApp: {
     hoverBg: '#25D366',
@@ -97,7 +100,7 @@ export default function Platforms() {
       const username = localStorage.getItem('username') || 'User';
       let platformKey = name.toLowerCase();
       if (platformKey === 'whatsapp') platformKey = 'wa';
-      const endpoint = `https://sherlockwisdom.com:8080/${platformKey}/devices`;
+      const endpoint = `${API_URL}/${platformKey}/devices`;
       const payload = {
         username,
         access_token
@@ -115,7 +118,7 @@ export default function Platforms() {
       if (res.data?.websocket_url) {
         let wsUrl = res.data.websocket_url;
         if (wsUrl.startsWith('/')) {
-          wsUrl = `wss://sherlockwisdom.com:8090${wsUrl}`;
+          wsUrl = `${WS_URL}${wsUrl}`;
         }
 
         try {
