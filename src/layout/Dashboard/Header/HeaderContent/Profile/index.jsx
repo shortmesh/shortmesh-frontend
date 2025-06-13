@@ -123,8 +123,8 @@ export default function Profile() {
       >
         {({ TransitionProps }) => (
           <Transitions type="grow" position="top-right" in={open} {...TransitionProps}>
-            <Paper sx={(theme) => ({ boxShadow: theme.customShadows.z1, width: 290, minWidth: 240, maxWidth: { xs: 250, md: 290 } })}>
-              <ClickAwayListener onClickAway={handleClose}>
+            <ClickAwayListener onClickAway={handleClose}>
+              <Paper sx={(theme) => ({ boxShadow: theme.customShadows.z1, width: 290, minWidth: 240, maxWidth: { xs: 250, md: 290 } })}>
                 <MainCard elevation={0} border={false} content={false}>
                   <CardContent sx={{ px: 2.5, pt: 3 }}>
                     <Grid container justifyContent="space-between" alignItems="center">
@@ -194,8 +194,8 @@ export default function Profile() {
                     <SettingTab />
                   </TabPanel>
                 </MainCard>
-              </ClickAwayListener>
-            </Paper>
+              </Paper>
+            </ClickAwayListener>
           </Transitions>
         )}
       </Popper>

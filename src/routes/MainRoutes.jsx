@@ -42,9 +42,9 @@ const MainRoutes = {
           path: 'dashboard',
           element: (
             <RequireAuth>
-              {/* <RequireOnboarding> */}
-              <DashboardDefault />
-              {/* </RequireOnboarding> */}
+              <RequireOnboarding>
+                <DashboardDefault />
+              </RequireOnboarding>
             </RequireAuth>
           )
         },

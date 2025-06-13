@@ -11,6 +11,14 @@ import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
 
 export default function DashboardDefault() {
   const username = localStorage.getItem('username');
+  // Get platforms count from localStorage
+  let platformsCount = 0;
+  try {
+    const platforms = JSON.parse(localStorage.getItem('platforms') || '[]');
+    platformsCount = Array.isArray(platforms) ? platforms.length : 0;
+  } catch {
+    platformsCount = 0;
+  }
 
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
@@ -24,7 +32,7 @@ export default function DashboardDefault() {
         <AnalyticEcommerce title="Posts" count="0" extra="Number of Posts" />
       </Grid> */}
       <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
-        <AnalyticEcommerce title="Platforms" count="0" extra="Number of Platforms" />
+        <AnalyticEcommerce title="Platforms" count={platformsCount} extra="Number of Platforms" />
       </Grid>
 
       <Grid sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} size={{ md: 8 }} />

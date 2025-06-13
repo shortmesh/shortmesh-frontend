@@ -26,7 +26,7 @@ export default function NavCard() {
           </Typography>
         </Stack>
         <AnimateButton>
-          <Button component={Link} target="_blank" href="https://.smswithoutborders.com" variant="contained" color="success" size="small">
+          <Button component={Link} target="_blank" href="https://.shortmesh.com" variant="contained" color="success" size="small">
             Website
           </Button>
         </AnimateButton>
