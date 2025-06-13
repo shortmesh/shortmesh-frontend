@@ -39,6 +39,9 @@ const platformIcons = {
   Signal: <FontAwesomeIcon icon={faSignalMessenger} style={{ color: '#3A76F0' }} />
 };
 
+const API_URL = import.meta.env.VITE_APP_API_URL;
+const WS_URL = import.meta.env.VITE_APP_WEBSOCKET_URL;
+
 export default function DashboardDefault() {
   const username = localStorage.getItem('username');
   let platforms = [];
@@ -98,7 +101,7 @@ export default function DashboardDefault() {
       const username = localStorage.getItem('username') || 'User';
       let platformKey = name.toLowerCase();
       if (platformKey === 'whatsapp') platformKey = 'wa';
-      const endpoint = `https://sherlockwisdom.com:8080/${platformKey}/devices`;
+      const endpoint = `${API_URL}/${platformKey}/devices`;
       const payload = { username, access_token };
       const res = await axios.post(endpoint, payload, {
         headers: {
@@ -110,7 +113,7 @@ export default function DashboardDefault() {
       if (res.data?.websocket_url) {
         let wsUrl = res.data.websocket_url;
         if (wsUrl.startsWith('/')) {
-          wsUrl = `wss://sherlockwisdom.com:8090${wsUrl}`;
+          wsUrl = `${WS_URL}${wsUrl}`;
         }
         try {
           wsRef.current = new window.WebSocket(wsUrl);
