@@ -20,6 +20,7 @@ import { faSignalMessenger } from '@fortawesome/free-brands-svg-icons';
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
+import { MuiTelInput } from 'mui-tel-input';
 
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
@@ -55,6 +56,9 @@ export default function DashboardDefault() {
   const apiKey = localStorage.getItem('token') || '';
   const apiKeysCount = apiKey ? 1 : 0;
 
+  // const devices = localStorage.getItem('device') || '';
+  // const devicesCount = devices ? 1 : 0;
+
   const [copiedKey, setCopiedKey] = useState('');
   const [addingPlatform, setAddingPlatform] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState('');
@@ -64,6 +68,9 @@ export default function DashboardDefault() {
   const [qrImage, setQrImage] = useState(null);
   const [loadingQr, setLoadingQr] = useState(false);
   const [qrTimeout, setQrTimeout] = useState(null);
+  // const [addingDevice, setAddingDevice] = useState(false);
+  // const [devicePhone, setDevicePhone] = useState('');
+  // const [devicePhoneError, setDevicePhoneError] = useState('');
   const wsRef = useRef(null);
   const navigate = useNavigate();
 
@@ -109,7 +116,7 @@ export default function DashboardDefault() {
           'Content-Type': 'application/json'
         }
       });
-      setDeviceMsg('Device added successfully! Waiting for QR code...');
+      setDeviceMsg('Waiting for QR code...');
       if (res.data?.websocket_url) {
         let wsUrl = res.data.websocket_url;
         if (wsUrl.startsWith('/')) {
@@ -122,7 +129,7 @@ export default function DashboardDefault() {
           const timeout = setTimeout(() => {
             setLoadingQr(false);
             setDeviceError('QR code did not arrive in time. Please try again.');
-          }, 60000); // 1 minute
+          }, 180000); // 3 minute
           setQrTimeout(timeout);
 
           wsRef.current.onmessage = (event) => {
@@ -207,6 +214,34 @@ export default function DashboardDefault() {
     }
   };
 
+  // const handleAddDeviceClick = () => {
+  //   setAddingDevice(true);
+  //   setDevicePhone('');
+  //   setDevicePhoneError('');
+  // };
+
+  // const handleDevicePhoneChange = (value) => {
+  //   setDevicePhone(value);
+  //   setDevicePhoneError('');
+  // };
+
+  // const handleFinishAddDevice = () => {
+  //   if (!devicePhone || devicePhone.length < 8) {
+  //     setDevicePhoneError('Please enter a valid phone number.');
+  //     return;
+  //   }
+  //   // Here you would add logic to actually add the device.
+  //   setAddingDevice(false);
+  //   setDevicePhone('');
+  //   setDevicePhoneError('');
+  // };
+
+  // const handleCancelAddDevice = () => {
+  //   setAddingDevice(false);
+  //   setDevicePhone('');
+  //   setDevicePhoneError('');
+  // };
+
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
       <Grid sx={{ mb: 1 }} size={12}>
@@ -220,6 +255,9 @@ export default function DashboardDefault() {
       <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
         <AnalyticEcommerce title="API Keys" count={apiKeysCount} extra="Number of API Keys" />
       </Grid>
+       {/* <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
+        <AnalyticEcommerce title="Devices" count={devicesCount} extra="Number of Devices" />
+      </Grid> */}
 
       {/* API Key Display */}
       <Grid size={12}>
@@ -248,12 +286,48 @@ export default function DashboardDefault() {
 
       {/* Add Platform Button */}
       <Grid size={12}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1, gap: 2 }}>
           <Button variant="contained" color="primary" startIcon={<PlusOutlined />} onClick={handleAddPlatformClick}>
-            Add Device
+            Add Platform
           </Button>
+          {/* <Button variant="outlined" color="secondary" onClick={handleAddDeviceClick}>
+            Add Device
+          </Button> */}
         </Box>
       </Grid>
+
+      {/* Add Device Flow */}
+      {/* {addingDevice && (
+        <Grid size={12}>
+          <Box sx={{ mb: 4, p: 2, border: '1px solid #eee', borderRadius: 2, bgcolor: 'background.paper', maxWidth: 400 }}>
+            <Typography variant="subtitle1" sx={{ mb: 2 }}>
+              Enter device phone number
+            </Typography>
+            <MuiTelInput
+              value={devicePhone}
+              onChange={handleDevicePhoneChange}
+              fullWidth
+              defaultCountry="US"
+              error={!!devicePhoneError}
+              helperText={devicePhoneError}
+              sx={{ mb: 2 }}
+            />
+            {devicePhoneError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {devicePhoneError}
+              </Alert>
+            )}
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button variant="contained" color="success" onClick={handleFinishAddDevice}>
+                Add
+              </Button>
+              <Button variant="outlined" color="inherit" onClick={handleCancelAddDevice}>
+                Cancel
+              </Button>
+            </Box>
+          </Box>
+        </Grid>
+      )} */}
 
       {/* Add Platform Flow (inline, like platforms/index.jsx) */}
       {addingPlatform && (
