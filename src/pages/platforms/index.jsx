@@ -127,7 +127,7 @@ export default function Platforms() {
           const timeout = setTimeout(() => {
             setLoadingQr(false);
             setDeviceError('QR code did not arrive in time. Please try again.');
-          }, 60000); // 1 minute
+          }, 180000); // 3 minute
           setQrTimeout(timeout);
 
           wsRef.current.onopen = () => {
