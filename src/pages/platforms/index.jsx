@@ -66,6 +66,7 @@ export default function Platforms() {
   const [deviceMsg, setDeviceMsg] = useState('');
   const [deviceError, setDeviceError] = useState('');
   const [wsQrData, setWsQrData] = useState('');
+  const [qrImage, setQrImage] = useState(null); // <-- add this line
   const [loadingQr, setLoadingQr] = useState(false);
   const [qrTimeout, setQrTimeout] = useState(null);
   const wsRef = useRef(null);
@@ -76,6 +77,7 @@ export default function Platforms() {
     setDeviceMsg('');
     setDeviceError('');
     setWsQrData('');
+    setQrImage(null); // <-- reset QR image
     setLoadingQr(false);
     if (wsRef.current) {
       wsRef.current.close();
@@ -89,7 +91,8 @@ export default function Platforms() {
     setDeviceMsg('');
     setDeviceError('');
     setWsQrData('');
-    setLoadingQr(false);
+    setQrImage(null); // <-- reset QR image
+    setLoadingQr(true); // <-- set loader on start
     if (qrTimeout) clearTimeout(qrTimeout);
     if (wsRef.current) {
       wsRef.current.close();
@@ -127,7 +130,7 @@ export default function Platforms() {
           const timeout = setTimeout(() => {
             setLoadingQr(false);
             setDeviceError('QR code did not arrive in time. Please try again.');
-          }, 180000); // 3 minute
+          }, 180000); //  minute
           setQrTimeout(timeout);
 
           wsRef.current.onopen = () => {
@@ -140,9 +143,8 @@ export default function Platforms() {
             if (event.data instanceof Blob) {
               const reader = new FileReader();
               reader.onload = function (e) {
-                setQrImage(e.target.result);
+                setQrImage(e.target.result); // <-- set QR image
                 setDeviceMsg('QR code received successfully!');
-                setActiveStep(1);
               };
               reader.onerror = function () {
                 setDeviceError('Error reading binary image data.');
@@ -151,12 +153,11 @@ export default function Platforms() {
               reader.readAsDataURL(event.data);
             } else if (typeof event.data === 'string') {
               if (event.data.startsWith('data:image/')) {
-                setQrImage(event.data);
+                setQrImage(event.data); // <-- set QR image
               } else {
-                setQrImage(`data:image/png;base64,${event.data}`);
+                setQrImage(`data:image/png;base64,${event.data}`); // <-- set QR image
               }
               setDeviceMsg('QR code received successfully!');
-              setActiveStep(1);
             } else {
               setDeviceError('Received unsupported data type for QR code.');
               setLoadingQr(false);
@@ -227,6 +228,7 @@ export default function Platforms() {
     setDeviceMsg('');
     setDeviceError('');
     setWsQrData('');
+    setQrImage(null); // <-- reset QR image
     setLoadingQr(false);
     if (wsRef.current) {
       wsRef.current.close();
@@ -325,12 +327,35 @@ export default function Platforms() {
                       <Typography variant="body2">Waiting for QR code from device...</Typography>
                     </Box>
                   )}
-                  {!loadingQr && wsQrData ? (
+                  {!loadingQr && qrImage ? (
                     <Box sx={{ textAlign: 'center', mb: 2 }}>
                       <Typography variant="subtitle1" sx={{ mb: 1 }}>
                         Scan this QR Code with your device
                       </Typography>
-                      <QRCodeCanvas value={wsQrData} size={200} />
+                      <Box
+                        sx={{
+                          display: 'inline-block',
+                          background: '#fff',
+                          border: '4px solid #1976d2',
+                          borderRadius: 2,
+                          p: 2,
+                          boxShadow: 2
+                        }}
+                      >
+                        <img
+                          src={qrImage}
+                          alt="QR Code"
+                          style={{
+                            width: 320,
+                            height: 320,
+                            maxWidth: '90vw',
+                            maxHeight: '90vw',
+                            imageRendering: 'pixelated',
+                            background: '#fff',
+                            display: 'block'
+                          }}
+                        />
+                      </Box>
                     </Box>
                   ) : null}
                   <Button variant="contained" color="success" sx={{ mt: 2 }} onClick={handleFinishAddPlatform}>
