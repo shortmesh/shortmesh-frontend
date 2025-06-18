@@ -249,9 +249,9 @@ export default function DashboardDefault() {
           Hi {username ? `, ${username}` : ''}!👋🏼
         </Typography>
       </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
+      {/* <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
         <AnalyticEcommerce title="Platforms" count={platformsCount} extra="Number of Platforms" />
-      </Grid>
+      </Grid> */}
       <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
         <AnalyticEcommerce title="API Keys" count={apiKeysCount} extra="Number of API Keys" />
       </Grid>
@@ -444,7 +444,7 @@ export default function DashboardDefault() {
         </Grid>
       )}
       {/* Platforms List */}
-      <Grid size={12}>
+      {/* <Grid size={12}>
         <MainCard title="Connected Platforms">
           {platforms.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
@@ -461,7 +461,7 @@ export default function DashboardDefault() {
             </List>
           )}
         </MainCard>
-      </Grid>
+      </Grid> */}
 
       {/* Filters Section */}
       <Grid size={{ xs: 12, md: 12, lg: 12 }}>
