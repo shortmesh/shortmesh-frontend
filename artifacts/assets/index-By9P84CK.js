@@ -1,0 +1,1 @@
+import{j as r,G as s,T as t}from"./index-CLQB1yP-.js";function i(){return r.jsx(s,{container:!0,rowSpacing:4.5,columnSpacing:2.75,children:r.jsx(s,{item:!0,xs:12,children:r.jsx(t,{variant:"h5",children:"Posts"})})})}export{i as default};
