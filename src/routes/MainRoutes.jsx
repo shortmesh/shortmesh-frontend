@@ -25,6 +25,7 @@ const Settings = Loadable(lazy(() => import('pages/settings/index')));
 const Documentation = Loadable(lazy(() => import('pages/extra-pages/documentation')));
 const Help = Loadable(lazy(() => import('pages/extra-pages/help')));
 const OnboardingStepper = Loadable(lazy(() => import('pages/onboarding/first')));
+const NotFound = Loadable(lazy(() => import('pages/extra-pages/notfound')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -35,6 +36,7 @@ const MainRoutes = {
       path: '/',
       element: <Landing />
     },
+    { path: '*', element: <NotFound /> },
     {
       element: <DashboardLayout />,
       children: [
