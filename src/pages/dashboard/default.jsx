@@ -17,7 +17,7 @@ import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
 import { CopyOutlined, WhatsAppOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignalMessenger } from '@fortawesome/free-brands-svg-icons';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { MuiTelInput } from 'mui-tel-input';
@@ -45,13 +45,6 @@ const WS_URL = import.meta.env.VITE_APP_WEBSOCKET_URL;
 
 export default function DashboardDefault() {
   const username = localStorage.getItem('username');
-  let platforms = [];
-  try {
-    platforms = JSON.parse(localStorage.getItem('platforms') || '[]');
-  } catch {
-    platforms = [];
-  }
-  const platformsCount = Array.isArray(platforms) ? platforms.length : 0;
 
   const apiKey = localStorage.getItem('token') || '';
   const apiKeysCount = apiKey ? 1 : 0;
@@ -73,6 +66,35 @@ export default function DashboardDefault() {
   // const [devicePhoneError, setDevicePhoneError] = useState('');
   const wsRef = useRef(null);
   const navigate = useNavigate();
+
+  let platforms = [];
+
+  const platformsCount = Array.isArray(platforms) ? platforms.length : 0;
+  useEffect(() => {
+    const fetchPlatforms = async () => {
+      const access_token = localStorage.getItem('token');
+      const username = localStorage.getItem('username') || 'User';
+      const headers = {
+        accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${access_token}`
+      };
+
+      const fetchFor = async (platformKey) => {
+        try {
+          const response = await axios.post(`${API_URL}/${platformKey}/list/devices`, { username }, { headers });
+          console.log(`${platformKey.toUpperCase()} devices:`, response.data);
+          // Optionally store or display the result
+        } catch (err) {
+          console.error(`Error fetching ${platformKey} devices`, err);
+        }
+      };
+
+      await Promise.all([fetchFor('wa'), fetchFor('signal')]);
+    };
+
+    fetchPlatforms();
+  }, []);
 
   const handleCopy = (key) => {
     navigator.clipboard.writeText(key);
@@ -100,8 +122,6 @@ export default function DashboardDefault() {
     setDeviceError('');
     setQrImage(null);
     setLoadingQr(true);
-    setDeviceMsg('');
-    setDeviceError('');
     if (qrTimeout) clearTimeout(qrTimeout);
     try {
       const access_token = localStorage.getItem('token');
@@ -109,11 +129,12 @@ export default function DashboardDefault() {
       let platformKey = name.toLowerCase();
       if (platformKey === 'whatsapp') platformKey = 'wa';
       const endpoint = `${API_URL}/${platformKey}/devices`;
-      const payload = { username, access_token };
+      const payload = { username };
       const res = await axios.post(endpoint, payload, {
         headers: {
           accept: 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${access_token}`
         }
       });
       setDeviceMsg('Waiting for QR code...');
@@ -125,16 +146,23 @@ export default function DashboardDefault() {
         try {
           wsRef.current = new window.WebSocket(wsUrl);
           wsRef.current.binaryType = 'blob';
-          wsRef.current.onopen = () => {};
-          const timeout = setTimeout(() => {
-            setLoadingQr(false);
-            setDeviceError('QR code did not arrive in time. Please try again.');
-          }, 180000); // 3 minute
-          setQrTimeout(timeout);
-
+          wsRef.current.onopen = () => {
+            console.log('WebSocket connected successfully to:', wsUrl);
+          };
           wsRef.current.onmessage = (event) => {
-            clearTimeout(timeout);
             setLoadingQr(false);
+
+            if (!event.data || event.data.length === 0) {
+              console.log('Received nil or empty data, closing WebSocket connection.');
+              if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                wsRef.current.close();
+              }
+              setDeviceError('End of session or error: No data received. Please try again.');
+              return;
+            }
+
+            console.log('WebSocket received data:', event.data);
+
             if (event.data instanceof Blob) {
               const reader = new FileReader();
               reader.onload = function (e) {
@@ -159,16 +187,19 @@ export default function DashboardDefault() {
             }
           };
           wsRef.current.onerror = (error) => {
+            console.error('WebSocket error:', error);
             setDeviceError('WebSocket connection failed. Please ensure the backend WebSocket endpoint is running and accessible.');
             setLoadingQr(false);
           };
           wsRef.current.onclose = (event) => {
+            console.log('WebSocket closed:', event);
             if (!event.wasClean && event.code !== 1000) {
               setDeviceError(`WebSocket closed unexpectedly (code: ${event.code}, reason: ${event.reason})`);
             }
             setLoadingQr(false);
           };
         } catch (wsErr) {
+          console.error('WebSocket connection attempt error:', wsErr);
           setDeviceError('WebSocket connection error. Please check your backend and network.');
           setLoadingQr(false);
         }
@@ -177,6 +208,7 @@ export default function DashboardDefault() {
         setLoadingQr(false);
       }
     } catch (err) {
+      console.error('API call failed:', err);
       if (err.response?.data?.message) {
         setDeviceError(err.response.data.message);
       } else {
@@ -249,13 +281,13 @@ export default function DashboardDefault() {
           Hi {username ? `, ${username}` : ''}!👋🏼
         </Typography>
       </Grid>
-      {/* <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
         <AnalyticEcommerce title="Platforms" count={platformsCount} extra="Number of Platforms" />
-      </Grid> */}
+      </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
         <AnalyticEcommerce title="API Keys" count={apiKeysCount} extra="Number of API Keys" />
       </Grid>
-       {/* <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
+      {/* <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
         <AnalyticEcommerce title="Devices" count={devicesCount} extra="Number of Devices" />
       </Grid> */}
 
@@ -288,7 +320,7 @@ export default function DashboardDefault() {
       <Grid size={12}>
         <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1, gap: 2 }}>
           <Button variant="contained" color="primary" startIcon={<PlusOutlined />} onClick={handleAddPlatformClick}>
-            Add Platform
+            Add Device
           </Button>
           {/* <Button variant="outlined" color="secondary" onClick={handleAddDeviceClick}>
             Add Device
@@ -444,8 +476,8 @@ export default function DashboardDefault() {
         </Grid>
       )}
       {/* Platforms List */}
-      {/* <Grid size={12}>
-        <MainCard title="Connected Platforms">
+      <Grid size={12}>
+        <MainCard title="Connected Devices">
           {platforms.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
               No platforms connected.
@@ -461,7 +493,7 @@ export default function DashboardDefault() {
             </List>
           )}
         </MainCard>
-      </Grid> */}
+      </Grid>
 
       {/* Filters Section */}
       <Grid size={{ xs: 12, md: 12, lg: 12 }}>

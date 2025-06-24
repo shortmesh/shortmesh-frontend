@@ -52,14 +52,6 @@ const platformIcons = {
 };
 
 export default function Platforms() {
-  let initialPlatforms = [];
-  try {
-    initialPlatforms = JSON.parse(localStorage.getItem('platforms') || '[]');
-  } catch {
-    initialPlatforms = [];
-  }
-  const [platforms, setPlatforms] = useState(initialPlatforms);
-
   const [addingPlatform, setAddingPlatform] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState('');
   const [pendingPlatform, setPendingPlatform] = useState('');
@@ -70,6 +62,35 @@ export default function Platforms() {
   const [loadingQr, setLoadingQr] = useState(false);
   const [qrTimeout, setQrTimeout] = useState(null);
   const wsRef = useRef(null);
+
+  let platforms = [];
+
+  const platformsCount = Array.isArray(platforms) ? platforms.length : 0;
+
+  useEffect(() => {
+    const fetchPlatforms = async () => {
+      const access_token = localStorage.getItem('token');
+      const username = localStorage.getItem('username') || 'User';
+      const headers = {
+        accept: 'application/json',
+        'Content-Type': 'application/json'
+      };
+
+      const fetchFor = async (platformKey) => {
+        try {
+          const response = await axios.post(`${API_URL}/${platformKey}/list/devices`, { username, access_token }, { headers });
+          console.log(`${platformKey.toUpperCase()} devices:`, response.data);
+          // You can optionally save to state/localStorage if needed
+        } catch (err) {
+          console.error(`Error fetching ${platformKey} devices`, err);
+        }
+      };
+
+      await Promise.all([fetchFor('wa'), fetchFor('signal')]);
+    };
+
+    fetchPlatforms();
+  }, []);
 
   const handleAddPlatformClick = () => {
     setAddingPlatform(true);

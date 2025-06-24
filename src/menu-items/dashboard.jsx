@@ -47,14 +47,14 @@ const dashboard = {
     //   icon: icons.CommentOutlined,
     //   breadcrumbs: false
     // },
-    // {
-    //   id: 'platforms',
-    //   title: 'Platforms',
-    //   type: 'item',
-    //   url: '/platforms',
-    //   icon: icons.UsergroupAddOutlined,
-    //   breadcrumbs: false
-    // },
+    {
+      id: 'platforms',
+      title: 'Platforms',
+      type: 'item',
+      url: '/platforms',
+      icon: icons.UsergroupAddOutlined,
+      breadcrumbs: false
+    },
     // {
     //   id: 'analytics',
     //   title: 'Analytics',
