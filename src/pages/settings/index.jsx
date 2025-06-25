@@ -115,7 +115,7 @@ export default function Settings() {
         </MainCard>
       </Grid>
 
-      <Grid size={12}>
+      {/* <Grid size={12}>
         <MainCard title="Connected Platforms">
           {platforms.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
@@ -132,9 +132,9 @@ export default function Settings() {
             </List>
           )}
         </MainCard>
-      </Grid>
+      </Grid> */}
 
-      <Grid size={12}>
+      {/* <Grid size={12}>
         <MainCard title="API Keys">
           {!apiKey ? (
             <Typography variant="body2" color="text.secondary">
@@ -156,7 +156,7 @@ export default function Settings() {
             </List>
           )}
         </MainCard>
-      </Grid>
+      </Grid> */}
 
       <Grid size={12}>
         <Divider sx={{ my: 3 }} />
