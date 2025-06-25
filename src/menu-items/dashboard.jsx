@@ -39,14 +39,14 @@ const dashboard = {
       icon: icons.DashboardOutlined,
       breadcrumbs: false
     },
-    // {
-    //   id: 'posts',
-    //   title: 'Posts',
-    //   type: 'item',
-    //   url: '/posts',
-    //   icon: icons.CommentOutlined,
-    //   breadcrumbs: false
-    // },
+    {
+      id: 'posts',
+      title: 'Posts',
+      type: 'item',
+      url: '/posts',
+      icon: icons.CommentOutlined,
+      breadcrumbs: false
+    },
     {
       id: 'platforms',
       title: 'Platforms',
