@@ -14,13 +14,12 @@ import CircularProgress from '@mui/material/CircularProgress';
 // project imports
 import MainCard from 'components/MainCard';
 import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
-import { CopyOutlined, WhatsAppOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { CopyOutlined, WhatsAppOutlined, PlusOutlined } from '@ant-design/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignalMessenger } from '@fortawesome/free-brands-svg-icons';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
-import { MuiTelInput } from 'mui-tel-input';
 
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
@@ -49,9 +48,6 @@ export default function DashboardDefault() {
   const apiKey = localStorage.getItem('token') || '';
   const apiKeysCount = apiKey ? 1 : 0;
 
-  // const devices = localStorage.getItem('device') || '';
-  // const devicesCount = devices ? 1 : 0;
-
   const [copiedKey, setCopiedKey] = useState('');
   const [addingPlatform, setAddingPlatform] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState('');
@@ -61,38 +57,44 @@ export default function DashboardDefault() {
   const [qrImage, setQrImage] = useState(null);
   const [loadingQr, setLoadingQr] = useState(false);
   const [qrTimeout, setQrTimeout] = useState(null);
-  // const [addingDevice, setAddingDevice] = useState(false);
-  // const [devicePhone, setDevicePhone] = useState('');
-  // const [devicePhoneError, setDevicePhoneError] = useState('');
+  const [devices, setDevices] = useState([]);
   const wsRef = useRef(null);
   const navigate = useNavigate();
 
   let platforms = [];
 
-  const platformsCount = Array.isArray(platforms) ? platforms.length : 0;
-  useEffect(() => {
-    const fetchPlatforms = async () => {
-      const access_token = localStorage.getItem('token');
-      const username = localStorage.getItem('username') || 'User';
-      const headers = {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${access_token}`
-      };
-
-      const fetchFor = async (platformKey) => {
-        try {
-          const response = await axios.post(`${API_URL}/${platformKey}/list/devices`, { username }, { headers });
-          console.log(`${platformKey.toUpperCase()} devices:`, response.data);
-          // Optionally store or display the result
-        } catch (err) {
-          console.error(`Error fetching ${platformKey} devices`, err);
-        }
-      };
-
-      await Promise.all([fetchFor('wa'), fetchFor('signal')]);
+  const fetchPlatforms = async () => {
+    const access_token = localStorage.getItem('token');
+    const username = localStorage.getItem('username') || 'User';
+    const headers = {
+      accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${access_token}`
     };
 
+    const platformMap = {
+      wa: 'WhatsApp',
+      signal: 'Signal'
+    };
+
+    const allDevices = [];
+    await Promise.all(
+      Object.keys(platformMap).map(async (key) => {
+        try {
+          const response = await axios.post(`${API_URL}/${key}/list/devices`, { username }, { headers });
+          console.log(`${key.toUpperCase()} devices:`, response.data);
+          (response.data?.devices || []).forEach((id) => {
+            allDevices.push({ platform: platformMap[key], id });
+          });
+        } catch (err) {
+          console.error(`Error fetching ${key} devices`, err);
+        }
+      })
+    );
+    setDevices(allDevices);
+  };
+
+  useEffect(() => {
     fetchPlatforms();
   }, []);
 
@@ -219,20 +221,6 @@ export default function DashboardDefault() {
   };
 
   const handleFinishAddPlatform = () => {
-    if (pendingPlatform) {
-      let savedPlatforms = [];
-      try {
-        savedPlatforms = JSON.parse(localStorage.getItem('platforms') || '[]');
-        if (!savedPlatforms.includes(pendingPlatform)) {
-          savedPlatforms.push(pendingPlatform);
-          localStorage.setItem('platforms', JSON.stringify(savedPlatforms));
-          platforms.push(pendingPlatform);
-        }
-      } catch (e) {
-        localStorage.setItem('platforms', JSON.stringify([pendingPlatform]));
-        platforms.push(pendingPlatform);
-      }
-    }
     setAddingPlatform(false);
     setSelectedPlatform('');
     setPendingPlatform('');
@@ -244,35 +232,10 @@ export default function DashboardDefault() {
       wsRef.current.close();
       wsRef.current = null;
     }
+    fetchPlatforms();
   };
 
-  // const handleAddDeviceClick = () => {
-  //   setAddingDevice(true);
-  //   setDevicePhone('');
-  //   setDevicePhoneError('');
-  // };
-
-  // const handleDevicePhoneChange = (value) => {
-  //   setDevicePhone(value);
-  //   setDevicePhoneError('');
-  // };
-
-  // const handleFinishAddDevice = () => {
-  //   if (!devicePhone || devicePhone.length < 8) {
-  //     setDevicePhoneError('Please enter a valid phone number.');
-  //     return;
-  //   }
-  //   // Here you would add logic to actually add the device.
-  //   setAddingDevice(false);
-  //   setDevicePhone('');
-  //   setDevicePhoneError('');
-  // };
-
-  // const handleCancelAddDevice = () => {
-  //   setAddingDevice(false);
-  //   setDevicePhone('');
-  //   setDevicePhoneError('');
-  // };
+  const platformSet = new Set(devices.map((d) => d.platform));
 
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
@@ -282,14 +245,14 @@ export default function DashboardDefault() {
         </Typography>
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
-        <AnalyticEcommerce title="Platforms" count={platformsCount} extra="Number of Platforms" />
+        <AnalyticEcommerce title="Platforms" count={platformSet.size} extra="Number of Platforms" />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
+        <AnalyticEcommerce title="Devices" count={devices.length} extra="Number of Devices" />
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
         <AnalyticEcommerce title="API Keys" count={apiKeysCount} extra="Number of API Keys" />
       </Grid>
-      {/* <Grid size={{ xs: 12, sm: 6, md: 2, lg: 2 }}>
-        <AnalyticEcommerce title="Devices" count={devicesCount} extra="Number of Devices" />
-      </Grid> */}
 
       {/* API Key Display */}
       <Grid size={12}>
@@ -322,44 +285,8 @@ export default function DashboardDefault() {
           <Button variant="contained" color="primary" startIcon={<PlusOutlined />} onClick={handleAddPlatformClick}>
             Add Device
           </Button>
-          {/* <Button variant="outlined" color="secondary" onClick={handleAddDeviceClick}>
-            Add Device
-          </Button> */}
         </Box>
       </Grid>
-
-      {/* Add Device Flow */}
-      {/* {addingDevice && (
-        <Grid size={12}>
-          <Box sx={{ mb: 4, p: 2, border: '1px solid #eee', borderRadius: 2, bgcolor: 'background.paper', maxWidth: 400 }}>
-            <Typography variant="subtitle1" sx={{ mb: 2 }}>
-              Enter device phone number
-            </Typography>
-            <MuiTelInput
-              value={devicePhone}
-              onChange={handleDevicePhoneChange}
-              fullWidth
-              defaultCountry="US"
-              error={!!devicePhoneError}
-              helperText={devicePhoneError}
-              sx={{ mb: 2 }}
-            />
-            {devicePhoneError && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {devicePhoneError}
-              </Alert>
-            )}
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button variant="contained" color="success" onClick={handleFinishAddDevice}>
-                Add
-              </Button>
-              <Button variant="outlined" color="inherit" onClick={handleCancelAddDevice}>
-                Cancel
-              </Button>
-            </Box>
-          </Box>
-        </Grid>
-      )} */}
 
       {/* Add Platform Flow (inline, like platforms/index.jsx) */}
       {addingPlatform && (
@@ -475,19 +402,19 @@ export default function DashboardDefault() {
           </Box>
         </Grid>
       )}
-      {/* Platforms List */}
+      {/* Devices List */}
       <Grid size={12}>
         <MainCard title="Connected Devices">
-          {platforms.length === 0 ? (
+          {devices.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
-              No platforms connected.
+              No devices connected.
             </Typography>
           ) : (
             <List>
-              {platforms.map((name) => (
-                <ListItem key={name} sx={{ pl: 0 }}>
-                  <Avatar sx={{ mr: 2, bgcolor: 'transparent' }}>{platformIcons[name] || name[0]}</Avatar>
-                  <ListItemText primary={name} />
+              {devices.map(({ platform, id }) => (
+                <ListItem key={id} sx={{ pl: 0 }}>
+                  <Avatar sx={{ mr: 2, bgcolor: 'transparent' }}>{platformIcons[platform]}</Avatar>
+                  <ListItemText primary={id} secondary={platform} />
                 </ListItem>
               ))}
             </List>
