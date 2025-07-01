@@ -45,8 +45,8 @@ function BannerImage() {
         margin: '0 auto',
         position: 'relative',
         overflow: 'hidden',
-        minHeight: { xs: '300px', sm: '400px', md: '400px' },
-        height: { xs: '20vh', sm: '400px', md: '400px' }
+        minHeight: { xs: '300px', sm: '300px', md: '350px' },
+        height: { xs: '20vh', sm: '300px', md: '350px' }
       }}
     >
       <svg
@@ -61,15 +61,15 @@ function BannerImage() {
         <defs>
           <radialGradient id="logoCircleGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
             <stop offset="0%" stopColor="#FFFFFF" />
-            <stop offset="100%" stopColor="#F8F8F8" />{' '}
+            <stop offset="100%" stopColor="#D8D8D8" />{' '}
           </radialGradient>
 
           <linearGradient id="smallCircleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#f8f8f8" /> <stop offset="100%" stopColor="#D8D8D8" />{' '}
+            <stop offset="0%" stopColor="#D8D8D8" /> <stop offset="50%" stopColor="#D8D8D8" />{' '}
           </linearGradient>
         </defs>
         {platformYs.map((y, index) => {
-          const offsets = Array.from({ length: 2 }).map(() => Math.random() * 4);
+          const offsets = Array.from({ length: 1 }).map(() => Math.random() * 3);
           return (
             <React.Fragment key={`platform-${index}`}>
               <path
@@ -90,8 +90,8 @@ function BannerImage() {
           stroke="#ccc"
           strokeWidth="0.5"
         />
-        {generateMovingCircles(6, 'output-path', 6, 'smallCircleGradient')}{' '}
-        <rect x={centerX - 40} y={centerY - 40} width={80} height={80} fill="f8f8f8" stroke="#D8D8D8" strokeWidth="3" rx={2} ry={2} />
+        {generateMovingCircles(6, 'output-path', 5, 'smallCircleGradient')}{' '}
+        <rect x={centerX - 40} y={centerY - 40} width={80} height={80} fill="#fff" stroke="#D8D8D8" strokeWidth="3" rx={2} ry={2} />
       </svg>
 
       <Box
@@ -100,7 +100,7 @@ function BannerImage() {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: { xs: 60, sm: 60, md: 70 },
+          width: { xs: 60, sm: 60, md: 60 },
           height: 'auto',
           display: 'flex',
           alignItems: 'center',
