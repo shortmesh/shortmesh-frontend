@@ -23,6 +23,7 @@ import TableCell from './TableCell';
 import TableHead from './TableHead';
 import TableRow from './TableRow';
 import Tabs from './Tabs';
+import TextField from './TextField';
 import Tooltip from './Tooltip';
 import Typography from './Typography';
 
@@ -51,6 +52,7 @@ export default function ComponentsOverrides(theme) {
     TableHead(theme),
     TableRow(),
     Tabs(),
+    TextField(theme),
     Tooltip(theme),
     Typography()
   );

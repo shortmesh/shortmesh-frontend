@@ -8,7 +8,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -27,6 +26,7 @@ import { EyeOutlined, EyeInvisibleOutlined, WhatsAppOutlined, PlusOutlined } fro
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { MuiTelInput } from 'mui-tel-input';
+import TextField from '@mui/material/TextField';
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
 
@@ -209,6 +209,9 @@ export default function Posts() {
       <Dialog open={dialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Send a Message</DialogTitle>
         <DialogContent>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <strong>Important:</strong> The recipient must send you a message first on the selected platform to establish a connection.
+          </Alert>
           <TextField
             select
             label="Select Device"
