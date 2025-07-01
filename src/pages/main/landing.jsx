@@ -377,9 +377,9 @@ const Landing = () => {
         <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
           <Box
             sx={{
-              py: { xs: 6, md: 2 },
+              py: { xs: 6, md: 1 },
               px: { xs: 2, md: 10 },
-              mx: { xs: 2, md: 20 },
+              mx: { xs: 2, md: 30 },
               my: { xs: 4, md: 10 },
               borderRadius: 3,
               bgcolor: 'primary.main',
@@ -464,9 +464,9 @@ const Landing = () => {
           <Divider sx={{ color: '#2F52E0', height: '4px' }} />
           <Box
             sx={{
-              py: { xs: 6, md: 2 },
+              py: { xs: 6, md: 1 },
               px: { xs: 2, md: 10 },
-              mx: { xs: 2, md: 20 },
+              mx: { xs: 2, md: 30 },
               my: { xs: 4, md: 10 },
               borderRadius: 3,
               bgcolor: '#31134C',
