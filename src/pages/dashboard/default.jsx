@@ -20,6 +20,7 @@ import { faSignalMessenger } from '@fortawesome/free-brands-svg-icons';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
+import { TextField } from '@mui/material';
 
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
@@ -43,7 +44,8 @@ const API_URL = import.meta.env.VITE_APP_API_URL;
 const WS_URL = import.meta.env.VITE_APP_WEBSOCKET_URL;
 
 export default function DashboardDefault() {
-  const username = localStorage.getItem('username');
+  const access_token = localStorage.getItem('token');
+  const username = localStorage.getItem('username') || 'User';
 
   const apiKey = localStorage.getItem('token') || '';
   const apiKeysCount = apiKey ? 1 : 0;
@@ -58,6 +60,9 @@ export default function DashboardDefault() {
   const [loadingQr, setLoadingQr] = useState(false);
   const [qrTimeout, setQrTimeout] = useState(null);
   const [devices, setDevices] = useState([]);
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [webhookSaved, setWebhookSaved] = useState(false);
+  const [webhookError, setWebhookError] = useState('');
   const wsRef = useRef(null);
   const navigate = useNavigate();
 
@@ -126,8 +131,6 @@ export default function DashboardDefault() {
     setLoadingQr(true);
     if (qrTimeout) clearTimeout(qrTimeout);
     try {
-      const access_token = localStorage.getItem('token');
-      const username = localStorage.getItem('username') || 'User';
       let platformKey = name.toLowerCase();
       if (platformKey === 'whatsapp') platformKey = 'wa';
       const endpoint = `${API_URL}/${platformKey}/devices`;
@@ -236,6 +239,43 @@ export default function DashboardDefault() {
   };
 
   const platformSet = new Set(devices.map((d) => d.platform));
+
+  useEffect(() => {
+    // Load existing webhook from DB
+
+    axios
+      .get(`${API_URL}/webhook`, {
+        headers: {
+          accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${access_token}`
+        }
+      })
+      .then((res) => {
+        setWebhookUrl(res.data.url || '');
+      });
+  }, []);
+
+  const handleSaveWebhook = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/webhook`,
+        { url: webhookUrl, username },
+        {
+          headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${access_token}`
+          }
+        }
+      );
+      setWebhookSaved(true);
+      setWebhookError('');
+      setTimeout(() => setWebhookSaved(false), 3000);
+    } catch (err) {
+      setWebhookError('Failed to save webhook.');
+    }
+  };
 
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
@@ -403,7 +443,7 @@ export default function DashboardDefault() {
         </Grid>
       )}
       {/* Devices List */}
-      <Grid size={12}>
+      <Grid size={{ xs: 12, md: 12, lg: 6 }}>
         <MainCard title="Connected Devices">
           {devices.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
@@ -418,6 +458,34 @@ export default function DashboardDefault() {
                 </ListItem>
               ))}
             </List>
+          )}
+        </MainCard>
+      </Grid>
+
+      <Grid size={{ xs: 12, md: 12, lg: 6 }}>
+        <MainCard title="Webhook Settings">
+          <TextField
+            label="Your Webhook URL"
+            fullWidth
+            value={webhookUrl}
+            onChange={(e) => setWebhookUrl(e.target.value)}
+            placeholder="https://yourdomain.com/webhook/messages"
+            sx={{ mb: 2 }}
+          />
+          <Box display="flex" gap={2}>
+            <Button variant="contained" onClick={handleSaveWebhook}>
+              Add Webhook
+            </Button>
+          </Box>
+          {webhookSaved && (
+            <Alert severity="success" sx={{ mt: 2 }}>
+              Webhook added!
+            </Alert>
+          )}
+          {webhookError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {webhookError}
+            </Alert>
           )}
         </MainCard>
       </Grid>
