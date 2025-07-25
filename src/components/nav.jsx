@@ -49,9 +49,9 @@ const Nav = () => {
         >
           Docs
         </a>
-        {/* <a href="/pricing" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <a href="#pricing" style={{ textDecoration: 'none', color: 'inherit' }}>
           Pricing
-        </a> */}
+        </a>
       </Box>
 
       {/* Right Buttons */}
