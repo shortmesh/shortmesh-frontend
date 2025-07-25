@@ -464,7 +464,7 @@ export default function DashboardDefault() {
         </Grid>
       )}
       {/* Devices List */}
-      <Grid size={{ xs: 12, md: 12, lg: 6 }}>
+      <Grid size={{ xs: 12, md: 12, lg: 12 }}>
         <MainCard
           title="Connected Devices"
           secondary={
@@ -491,7 +491,7 @@ export default function DashboardDefault() {
       </Grid>
 
       {/* Webhook */}
-      <Grid size={{ xs: 12, md: 12, lg: 6 }}>
+      {/* <Grid size={{ xs: 12, md: 12, lg: 6 }}>
         <MainCard
           title="Webhooks"
           secondary={
@@ -560,7 +560,7 @@ export default function DashboardDefault() {
             </Alert>
           )}
         </MainCard>
-      </Grid>
+      </Grid> */}
 
       {/* Filters Section */}
       <Grid size={{ xs: 12, md: 12, lg: 12 }}>
