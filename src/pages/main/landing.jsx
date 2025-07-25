@@ -202,7 +202,7 @@ const Landing = () => {
               my: 'auto',
               alignContent: 'center',
               textAlign: 'center',
-              px: { xs: 2, sm: 2, md: 60 },
+              px: { xs: 2, sm: 6, md: 10, lg: 60 },
               zIndex: 1
             }}
             wrap
@@ -255,7 +255,7 @@ const Landing = () => {
                     <Button
                       size="large"
                       sx={{
-                        borderRadius: 7,      
+                        borderRadius: 7,
                         textTransform: 'none',
                         px: { xs: 2, sm: 4, md: 6 },
                         py: { xs: 1, sm: 1.5, md: 1.5 },
@@ -322,7 +322,7 @@ const Landing = () => {
         {/*  */}
 
         <Box>
-          <Box sx={{ px: { md: 20, xs: 2 }, bgcolor: '#ffffff', py: { xs: 4, md: 0 } }}>
+          <Box sx={{ px: { md: 15, sm: 10, lg: 20, xs: 2 }, bgcolor: '#ffffff', py: { xs: 4, md: 0 } }}>
             <Grid container alignItems="stretch" justifyContent="center" alignContent="center">
               {[
                 {
@@ -378,8 +378,8 @@ const Landing = () => {
           <Box
             sx={{
               py: { xs: 6, md: 1 },
-              px: { xs: 2, md: 10 },
-              mx: { xs: 2, md: 30 },
+              px: { xs: 2, md: 8, sm: 8, lg: 10 },
+              mx: { xs: 2, md: 20, sm: 20, lg: 30 },
               my: { xs: 4, md: 10 },
               borderRadius: 3,
               bgcolor: 'primary.main',
@@ -465,8 +465,8 @@ const Landing = () => {
           <Box
             sx={{
               py: { xs: 6, md: 1 },
-              px: { xs: 2, md: 10 },
-              mx: { xs: 2, md: 30 },
+              px: { xs: 2, md: 8, sm: 8, lg: 10 },
+              mx: { xs: 2, md: 20, sm: 20, lg: 30 },
               my: { xs: 4, md: 10 },
               borderRadius: 3,
               bgcolor: '#31134C',
@@ -533,6 +533,110 @@ const Landing = () => {
                 <OrangeBoxesFloating />
               </Grid>
             </Grid>
+          </Box>
+        </motion.div>
+
+        {/* Pricing Section */}
+        <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
+          <Box
+            id="pricing"
+            sx={{
+              py: { xs: 8, md: 12 },
+              px: { xs: 2, md: 15 },
+              bgcolor: '#f8f9fa',
+              textAlign: 'center'
+            }}
+          >
+            <Typography className="header" variant="h2" sx={{ mb: 2 }}>
+              Pricing
+            </Typography>
+            <Typography variant="h6" sx={{ mb: 8, color: 'text.secondary' }}>
+              Everything you need to build powerful messaging integrations
+            </Typography>
+
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Card
+                variant="outlined"
+                sx={{
+                  maxWidth: 400,
+                  p: 4,
+                  borderRadius: 3,
+                  bgcolor: '#ffffff',
+                  border: '2px solid',
+                  borderColor: 'primary.main',
+                  position: 'relative',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: 4
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <Chip
+                  label="Most Popular"
+                  color="primary"
+                  sx={{
+                    position: 'absolute',
+                    top: -6,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    fontWeight: 'bold'
+                  }}
+                />
+
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    Pro Plan
+                  </Typography>
+                  <Box sx={{ mb: 4 }}>
+                    <Typography variant="h2" sx={{ fontWeight: 'bold', color: 'primary.main', display: 'inline' }}>
+                      $20
+                    </Typography>
+                    <Typography variant="h6" sx={{ color: 'text.secondary', display: 'inline' }}>
+                      /month
+                    </Typography>
+                  </Box>
+
+                  <List sx={{ mb: 4, textAlign: 'left' }}>
+                    {[
+                      'Unlimited WhatsApp',
+                      'Unlimited Signal',
+                      'Dashboard Access',
+                      'Cross Platform Communication',
+                      'Unlimited Webhook Callbacks',
+                      'Unlimited Queuing for Backups'
+                    ].map((feature, index) => (
+                      <ListItem key={index} sx={{ py: 0.5, px: 0 }}>
+                        <ListItemText
+                          primary={
+                            <Typography variant="body1" sx={{ fontSize: '1rem' }}>
+                              ✓ {feature}
+                            </Typography>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+
+                  <a href="/dashboard" style={{ textDecoration: 'none' }}>
+                    <Button
+                      variant="contained"
+                      size="large"
+                      fullWidth
+                      sx={{
+                        borderRadius: 7,
+                        textTransform: 'none',
+                        py: 1.5,
+                        fontSize: '1.1rem',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Get Started
+                    </Button>
+                  </a>
+                </CardContent>
+              </Card>
+            </Box>
           </Box>
         </motion.div>
 
