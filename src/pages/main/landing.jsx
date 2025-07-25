@@ -1,30 +1,119 @@
-import React, { useState } from 'react';
-import { Box, Typography, Button, Card, CardContent, Paper, TextField, CardMedia, Avatar, Divider } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  Paper,
+  TextField,
+  CardMedia,
+  Avatar,
+  Divider,
+  Chip,
+  List,
+  ListItem,
+  ListItemText
+} from '@mui/material';
 import { Tabs, Tab } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { motion } from 'framer-motion';
 import {
   ApiOutlined,
+  ArrowRightOutlined,
   DashboardOutlined,
   DashOutlined,
+  DownloadOutlined,
+  EyeOutlined,
   GithubOutlined,
   LineChartOutlined,
   MessageOutlined,
+  PlusOutlined,
   SecurityScanOutlined,
   UsergroupAddOutlined
 } from '@ant-design/icons';
 import BannerImage from '../../components/BannerImage';
 import AnimateButton from 'components/@extended/AnimateButton';
+import Particles from './particles';
+import OrangeBoxesFloating from './orange';
+import { Link } from 'react-router';
+import Nav from '../../components/nav';
 
 const codeSnippets = {
-  js: `const res = await fetch("https://api.shortmesh.io/messages", {
+  js: `const res = await fetch("https://api.shortmesh.com/wa/message/2376543210", {
+  method: "POST",
   headers: {
-    Authorization: "Bearer sk_live_ABC123XYZ"
+    "Authorization": "Bearer sk_live_YOUR_API_KEY",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    username: "janedoe",
+    message: "hello world",
+    device_name: "01234567898"
+  })
+});`,
+
+  python: `import requests
+
+response = requests.post(
+  "https://api.shortmesh.com/signal/message/2376543210",
+  headers={
+    "Authorization": "Bearer sk_live_YOUR_API_KEY",
+    "Content-Type": "application/json"
+  },
+  json={
+    "username": "janedoe",
+    "message": "hello world",
+    "device_name": "01234567898"
   }
-});
-`,
-  curl: `curl -X GET "https://api.shortmesh.io/messages" `
+)
+print(response.json())`,
+
+  curl: `curl -X POST https://api.shortmesh.com/wa/message/2376543210 \\
+  -H "Authorization: Bearer sk_live_YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{ "username": "janedoe", "message": "hello world", "device_name": "01234567898" }'`,
+
+  c: `#include <curl/curl.h>
+
+int main() {
+  CURL *curl = curl_easy_init();
+  if (curl) {
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Authorization: Bearer sk_live_YOUR_API_KEY");
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+
+    const char *json = "{\\"username\\": \\"janedoe\\", \\"message\\": \\"hello world\\", \\"device_name\\": \\"01234567898\\"}";
+
+    curl_easy_setopt(curl, CURLOPT_URL, "https://api.shortmesh.com/signal/message/2376543210");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
+    curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+  }
+  return 0;
+}`,
+
+  'c++': `#include <curl/curl.h>
+
+int main() {
+  CURL *curl = curl_easy_init();
+  if (curl) {
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Authorization: Bearer sk_live_YOUR_API_KEY");
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+
+    const char *json = R"({"username": "janedoe", "message": "hello world", "device_name": "01234567898"})";
+
+    curl_easy_setopt(curl, CURLOPT_URL, "https://api.shortmesh.com/wa/message/2376543210");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
+    curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+  }
+  return 0;
+}`
 };
 
 const fadeInUp = {
@@ -75,45 +164,6 @@ const Landing = () => {
     </Grid>
   );
 
-  const Nav = () => (
-    <Box
-      sx={{
-        p: { xs: 2, sm: 3, md: 4 },
-        bgcolor: 'transparent',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }}
-    >
-      {/* Logo + Name */}
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Box component="img" src="/logo.svg" alt="Logo" sx={{ width: 30, mr: 1 }} />
-        <Typography variant="h6" className="header" sx={{ fontWeight: 'bold', fontSize: { xs: 12, md: 20 } }}>
-          ShortMesh
-        </Typography>
-      </Box>
-
-      {/* Buttons + GitHub */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <AnimateButton>
-          <Button
-            component="a"
-            href="/dashboard"
-            target="_blank"
-            variant="contained"
-            sx={{ textTransform: 'none', borderRadius: 7, px: 4 }}
-          >
-            Login
-          </Button>
-        </AnimateButton>
-        <a href="https://github.com/shortmesh" target="_blank">
-          {' '}
-          <GithubOutlined style={{ fontSize: 27, color: 'black' }} />{' '}
-        </a>
-      </Box>
-    </Box>
-  );
-
   const Footer = () => (
     <Box component="footer" sx={{ py: 4, px: 2, textAlign: 'center', bottom: 0 }}>
       <Divider />
@@ -127,14 +177,13 @@ const Landing = () => {
     <>
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
           minHeight: '100vh',
-          overflow: 'hidden'
+          overflow: 'auto',
+          bgcolor: '#EFEFEF'
         }}
       >
-        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-          <Nav />
+        <Nav />
+        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', pt: { xs: 8, md: 14 } }}>
           <Box
             sx={{
               position: 'absolute',
@@ -142,49 +191,52 @@ const Landing = () => {
               left: { md: -0, xs: -50 },
               width: { md: 800, xs: 80 },
               height: { md: 400, xs: 80 },
-              background: 'radial-gradient(circle, rgba(232, 237, 253, 0.94) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(202, 215, 248, 0.63) 0%, transparent 70%)',
               filter: 'blur(100px)',
               zIndex: 0
             }}
           />
           <Box
             sx={{
-              pt: { xs: 13, sm: 15, md: 15 },
+              pt: { xs: 13, sm: 15, md: 7 },
               my: 'auto',
               alignContent: 'center',
               textAlign: 'center',
-              px: { xs: 2, sm: 2, md: 4 },
+              px: { xs: 2, sm: 2, md: 60 },
               zIndex: 1
             }}
+            wrap
           >
             <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+              <Chip color="primary" variant="outlined" label="ShortMesh" sx={{ borderRadius: 7, bgcolor: '#fff', mb: 3 }} />
               <Typography
                 variant="h1"
                 sx={{
-                  background: 'linear-gradient(90deg,rgb(33, 45, 100),rgb(7, 12, 36),rgb(0, 0, 0))',
+                  background: 'linear-gradient(90deg,rgb(123, 30, 146),rgb(7, 12, 36),hsl(216, 81.10%, 33.10%))',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   fontWeight: 'bold',
-                  fontSize: { xs: '3.5rem', sm: '5rem', md: '7.5rem' },
+                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
                   mixBlendMode: 'hard-light',
+                  letterSpacing: 0,
                   color: 'black'
                 }}
                 className="header"
               >
-                Coming Soon
+                Messaging bridge API that lets you send and recieve messages across different platforms.{' '}
               </Typography>
               <Typography
                 variant="h6"
                 sx={{
-                  py: { md: 8, xs: 4 },
-                  fontSize: { xs: '1rem', sm: '1.2rem', md: '1.4rem' }
+                  py: { md: 6, xs: 4 },
+                  fontSize: { xs: '1rem', sm: '1.2rem', md: '1.3rem' }
                 }}
                 wrap
               >
-                <span style={{ fontWeight: 'bold' }}>ShortMesh</span> lets you access and manage messages from all major social <br />
+                Our API lets you access and manage messages from all major social <br />
                 media platforms through a single, developer-friendly API.
               </Typography>
-              <Grid container justifyContent="center" spacing={1}>
+              <Grid container justifyContent="center" spacing={1} sx={{ mt: 3 }}>
                 {' '}
                 <Grid
                   item
@@ -203,15 +255,10 @@ const Landing = () => {
                     <Button
                       size="large"
                       sx={{
-                        borderRadius: 1,
-                        color: '#ffffff',
-                        backgroundColor: '#000000',
-                        hover: {
-                          backgroundColor: '#3F51B5'
-                        },
+                        borderRadius: 7,      
                         textTransform: 'none',
-                        px: { xs: 2, sm: 4, md: 8 },
-                        py: { xs: 1, sm: 1.5, md: 2.2 },
+                        px: { xs: 2, sm: 4, md: 6 },
+                        py: { xs: 1, sm: 1.5, md: 1.5 },
                         fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' }
                       }}
                       variant="contained"
@@ -225,29 +272,34 @@ const Landing = () => {
                   xs={6}
                   sx={{
                     display: 'flex',
+                    flexDirection: 'column',
                     justifyContent: 'flex-start',
                     alignItems: 'center',
-                    pl: { xs: 0.5, sm: 1 }
+                    pl: { xs: 0.5, sm: 1 },
+                    mt: 2
                   }}
                 >
-                  <a href="https://github.com/shortmesh" target="_blank" style={{ textDecoration: 'none' }}>
-                    <Button
-                      startIcon={<GithubOutlined />}
-                      size="large"
+                  <a href="https://api.shortmesh.com/tutorials" target="_blank" style={{ textDecoration: 'none' }}>
+                    <Typography
+                      endIcon={<ArrowRightOutlined />}
+                      variant="body1"
                       sx={{
-                        borderRadius: 1,
                         color: '#000000',
-                        borderColor: '#000000',
-                        textTransform: 'none',
-                        px: { xs: 3, sm: 4, md: 8 },
-                        py: { xs: 1, sm: 1.5, md: 2 },
+                        fontWeight: 'bold',
                         fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' }
                       }}
-                      variant="outlined"
                     >
-                      GitHub
-                    </Button>
+                      Get Started Quickly
+                    </Typography>
                   </a>
+                  <Divider
+                    sx={{
+                      width: '100%',
+                      borderBottomWidth: '2px',
+                      borderColor: '#000000',
+                      mt: 0.5
+                    }}
+                  />
                 </Grid>
               </Grid>
             </motion.div>
@@ -267,65 +319,237 @@ const Landing = () => {
           </Box>
         </Box>
 
-        {/* Features Section */}
+        {/*  */}
+
+        <Box>
+          <Box sx={{ px: { md: 20, xs: 2 }, bgcolor: '#ffffff', py: { xs: 4, md: 0 } }}>
+            <Grid container alignItems="stretch" justifyContent="center" alignContent="center">
+              {[
+                {
+                  icon: <ApiOutlined style={{ fontSize: 30, color: '#000' }} />,
+                  title: 'API Access',
+                  description: 'Get secure API keys instantly and start integrating social inboxes with minimal setup.'
+                },
+                {
+                  icon: <MessageOutlined style={{ fontSize: 30, color: '#000' }} />,
+                  title: 'Messaging Support',
+                  description: 'Send messages using our API, recieve messages in real-time by setting up a webhook'
+                },
+                {
+                  icon: <DashboardOutlined style={{ fontSize: 30, color: '#000' }} />,
+                  title: 'Insightful dashboard',
+                  description: 'Our dashboard lets you manage your accounts, add devices and access your API keys all in one place.'
+                },
+                {
+                  icon: <UsergroupAddOutlined style={{ fontSize: 30, color: '#000' }} />,
+                  title: 'Multi-Platform Support',
+                  description: 'We currently support more than one platform, and we are actively working to add more platforms.'
+                }
+              ].map((item, index) => (
+                <Grid
+                  size={{ xs: 12, sm: 6, md: 3 }}
+                  key={index}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    justifyContent: 'flex-start',
+                    py: { md: 10, xs: 4 },
+                    px: 3,
+                    height: '100%',
+                    borderRight: { md: index !== 3 ? '1px solid rgb(178, 183, 190)' : 'none', xs: 'none' }
+                  }}
+                >
+                  {item.icon}
+                  <Typography variant="h5" sx={{ mt: 2, color: '#000000', fontSize: { xs: '1rem', sm: '1.2rem', md: '1.3rem' } }}>
+                    {item.title}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 1, color: 'grey', fontSize: { xs: '0.8rem', sm: '1rem', md: '1.1rem' } }}>
+                    {item.description}
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        </Box>
+
+        {/*  */}
+        <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
+          <Box
+            sx={{
+              py: { xs: 6, md: 1 },
+              px: { xs: 2, md: 10 },
+              mx: { xs: 2, md: 30 },
+              my: { xs: 4, md: 10 },
+              borderRadius: 3,
+              bgcolor: 'primary.main',
+              color: '#fff',
+              justifyContent: 'center',
+              alignContent: 'center'
+            }}
+          >
+            <Grid container alignItems="center">
+              <Grid size={{ xs: 12, md: 7 }}>
+                <Box>
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      mb: 3
+                    }}
+                  >
+                    Why use ShortMesh?
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      mb: 8,
+                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1rem' }
+                    }}
+                  >
+                    In today’s fast-paced digital world, your platform needs to do more than just exist — it needs to engage, respond, and
+                    connect across channels. That’s where ShortMesh comes in.
+                  </Typography>
+
+                  <a href="https://api.shortmesh.com/tutorials" target="_blank" style={{ textDecoration: 'none' }}>
+                    <Button
+                      size="large"
+                      sx={{
+                        borderRadius: 7,
+                        color: '#000',
+                        backgroundColor: '#fff',
+                        '&:hover': {
+                          backgroundColor: '#31134C',
+                          color: '#fff'
+                        },
+                        textTransform: 'none',
+                        px: { xs: 2, sm: 4, md: 6 }
+                      }}
+                      variant="contained"
+                    >
+                      Get Started Quickly
+                    </Button>
+                  </a>
+                </Box>
+              </Grid>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 5
+                }}
+              >
+                <Particles />
+              </Grid>
+            </Grid>
+          </Box>
+        </motion.div>
+
+        {/*  */}
         <Box
           sx={{
             textAlign: 'center',
             py: 13,
-            my: 5,
-            // px: 2,
             px: { xs: 2, md: 15, sm: 10, lg: 25 },
             zIndex: 1,
             position: 'relative',
-            bgcolor: '#F3F3F3'
+            bgcolor: '#ffffff'
           }}
         >
-          <Typography className="header" variant="h3">
-            Key Features
+          <Typography sx={{ wordSpacing: 20 }} className="header" variant="h3">
+            Connect. Automate. Scale.
           </Typography>
-          <Typography variant="subtitle1" sx={{ py: 6 }}>
-            From API access to real-time analytics and a full-featured dashboard, <br />
-            <span style={{ fontWeight: 'bold' }}>ShortMesh</span> gives you all the tools to build, monitor, and manage social inboxes—your
-            way.
-          </Typography>
-
-          <Grid container spacing={6} justifyContent="center" mt={{ md: 6, xs: 4, lg: 10 }}>
-            <FeatureCard
-              icon={<ApiOutlined />}
-              title="API Access"
-              description="Get secure API keys instantly and start integrating social inboxes with minimal setup."
-            />
-            <FeatureCard
-              icon={<LineChartOutlined />}
-              title="Usage Analytics"
-              description="Track your API usage—requests, errors, rate limits, and performance, all in one place."
-            />
-            <FeatureCard
-              icon={<DashboardOutlined />}
-              title="Insightful Dashboard"
-              description="View detailed usage stats, monitor activity, and explore message data through a clean, intuitive dashboard."
-            />
-            <FeatureCard
-              icon={<MessageOutlined />}
-              title="Message Visibility"
-              description="View all received and sent messages across connected social platforms through the API or dashboard."
-            />
-            <FeatureCard
-              icon={<UsergroupAddOutlined />}
-              title="Multi-Platform Support"
-              description="Easily connect and manage multiple social media platforms—add new ones anytime from the dashboard."
-            />
-            <FeatureCard
-              icon={<SecurityScanOutlined />}
-              title="End-to-end Encryption"
-              description="Easily connect and manage multiple social media platforms—add new ones anytime from the dashboard."
-            />
-          </Grid>
         </Box>
 
+        {/*  */}
+        <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
+          <Divider sx={{ color: '#2F52E0', height: '4px' }} />
+          <Box
+            sx={{
+              py: { xs: 6, md: 1 },
+              px: { xs: 2, md: 10 },
+              mx: { xs: 2, md: 30 },
+              my: { xs: 4, md: 10 },
+              borderRadius: 3,
+              bgcolor: '#31134C',
+              color: '#fff',
+              justifyContent: 'center',
+              alignContent: 'center'
+            }}
+          >
+            <Grid container alignItems="center">
+              <Grid size={{ xs: 12, md: 7 }}>
+                <Box
+                  sx={{
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    py: { md: 8, xs: 4 }
+                  }}
+                >
+                  <Typography variant="h3" sx={{ mb: 3, fontWeight: 600 }}>
+                    What You Can Do With ShortMesh
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      mb: 3,
+                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1rem' }
+                    }}
+                  >
+                    With our developer-friendly API, all the power is in your hands. Both developers and business managers.
+                  </Typography>
+
+                  <Box sx={{ fontSize: { xs: '0.9rem', sm: '1rem', md: '1rem' }, color: '#fdfdfd' }}>
+                    <ul style={{ paddingLeft: '1.2rem' }}>
+                      <li style={{ marginBottom: 12 }}>Build Multi-Platform Chatbots</li>
+                      <li style={{ marginBottom: 12 }}>Centralize Customer Communication</li>
+                      <li style={{ marginBottom: 12 }}>Automate Workflows & Notifications</li>
+                      <li style={{ marginBottom: 12 }}>Track and Analyze Interactions</li>
+                      <li style={{ marginBottom: 12 }}>Test Bots in Real Conditions</li>
+                    </ul>
+                  </Box>
+
+                  <a href="/dashboard" target="_blank" style={{ textDecoration: 'none', marginTop: '2rem' }}>
+                    <Button
+                      size="large"
+                      variant="contained"
+                      sx={{
+                        borderRadius: 7,
+                        color: '#000',
+                        backgroundColor: '#fff',
+                        textTransform: 'none',
+                        px: { xs: 2, sm: 4, md: 6 },
+                        mt: 2,
+                        '&:hover': {
+                          backgroundColor: '#3F51B5',
+                          color: '#fff'
+                        }
+                      }}
+                    >
+                      Signup
+                    </Button>
+                  </a>
+                </Box>
+              </Grid>
+              <Grid size={{ xs: 12, md: 5 }}>
+                <OrangeBoxesFloating />
+              </Grid>
+            </Grid>
+          </Box>
+        </motion.div>
+
         {/* More Section */}
-        <Box sx={{ my: { xs: 15, md: 20, ld: 25 }, mx: { xs: 2, md: 15, lg: 25 } }}>
-          <Typography className="header" variant="h3" textAlign="center">
+        <Box sx={{ my: { xs: 15, md: 10 }, mx: { xs: 2, md: 15, lg: 25 } }}>
+          <Box
+            sx={{
+              // position: 'absolute',
+              top: '-1000%',
+              left: '-10%',
+              width: '200%',
+              height: '150%',
+              background: 'radial-gradient(circle, rgba(66, 103, 182, 0.8), transparent 60%)',
+              zIndex: 2
+            }}
+          />
+          <Typography className="header" variant="h2" textAlign="center">
             Built For Everyone
           </Typography>
           <Typography variant="subtitle1" sx={{ py: 6 }} textAlign="center">
@@ -344,10 +568,9 @@ const Landing = () => {
               <Box
                 sx={{
                   backgroundColor: '#3F51B5',
-                  borderRadius: 2,
+                  borderRadius: 50,
                   px: { md: 10, xs: 2 },
                   py: 1
-                  // display: "inline-flex",
                 }}
               >
                 <TabList onChange={handleUserTabChange} TabIndicatorProps={{ style: { display: 'none' } }} textColor="primary">
@@ -357,7 +580,7 @@ const Landing = () => {
                     sx={{
                       textTransform: 'none',
                       fontWeight: 'bold',
-                      borderRadius: 1,
+                      borderRadius: 50,
                       px: 4,
                       color: '#fff',
                       '&.Mui-selected': {
@@ -372,7 +595,7 @@ const Landing = () => {
                     sx={{
                       textTransform: 'none',
                       fontWeight: 'bold',
-                      borderRadius: 1,
+                      borderRadius: 50,
                       px: 4,
                       color: '#fff',
                       '&.Mui-selected': {
@@ -395,18 +618,18 @@ const Landing = () => {
                   <Typography variant="body1" sx={{ mb: 6 }}>
                     Integrate messages into your stack effortlessly. Build, monitor and manage communications across platforms with ease.
                   </Typography>
-                  <a href="mailto:developers@smswithoutborders.com?subject=Request%20Demo&body=Hi%20ShortMesh%20Team,%0A%0AI'd%20like%20to%20request%20a%20demo%20of%20your%20platform.%0A%0AThanks!">
+                  <a href="https://api.shortmesh.com/tutorials" target="_blank">
                     <Button
                       variant="contained"
                       size="large"
                       sx={{
-                        borderRadius: 1,
+                        borderRadius: 7,
                         textTransform: 'none',
                         bgcolor: '#000000',
                         color: '#ffffff'
                       }}
                     >
-                      Request Demo
+                      Developer Docs
                     </Button>
                   </a>
                 </Grid>
@@ -414,60 +637,46 @@ const Landing = () => {
                   <Card
                     variant="outlined"
                     sx={{
-                      p: 0,
                       borderRadius: 2,
                       overflow: 'hidden',
-                      backgroundColor: '#F3F3F3',
-                      color: '#000000',
+                      backgroundColor: '#1e1e1e',
+                      color: '#dcdcdc',
                       fontFamily: 'monospace',
-                      minHeight: '300px'
+                      minHeight: '360px',
+                      boxShadow: '0 0 20px rgba(0,255,170,0.1)'
                     }}
                   >
+                    <Box sx={{ bgcolor: '#111', color: '#00ff99', px: 2, py: 1, fontWeight: 'bold', fontSize: 12 }}>
+                      ● ● ●&nbsp;&nbsp;~@shortmesh: sending message...
+                    </Box>
+
                     <TabContext value={codeTab}>
                       <TabList
                         onChange={handleCodeTabChange}
                         indicatorColor="primary"
                         textColor="primary"
-                        sx={{
-                          backgroundColor: '#D8D8D8',
-                          px: 2
-                        }}
+                        sx={{ backgroundColor: '#2a2a2a', px: 2 }}
                       >
-                        <Tab
-                          label="JavaScript"
-                          value="js"
-                          sx={{
-                            textTransform: 'none',
-                            color: '#000000',
-                            '&.Mui-selected': {
-                              color: '#000000',
-                              borderBottom: '2px solid #00ff99'
-                            }
-                          }}
-                        />
-                        <Tab
-                          label="cURL"
-                          value="curl"
-                          sx={{
-                            textTransform: 'none',
-                            color: '#000000',
-                            '&.Mui-selected': {
-                              color: '#000000',
-                              borderBottom: '2px solid #00ff99'
-                            }
-                          }}
-                        />
+                        {Object.keys(codeSnippets).map((lang) => (
+                          <Tab
+                            key={lang}
+                            label={lang.toUpperCase()}
+                            value={lang}
+                            sx={{
+                              textTransform: 'none',
+                              color: '#aaa',
+                              '&.Mui-selected': {
+                                color: '#00ffcc',
+                                borderBottom: '2px solid #00ffcc'
+                              }
+                            }}
+                          />
+                        ))}
                       </TabList>
 
-                      <TabPanel value="js" sx={{ p: 2 }}>
+                      <TabPanel value={codeTab} sx={{ p: 2, pt: 1 }}>
                         <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                          <code>{codeSnippets.js}</code>
-                        </pre>
-                      </TabPanel>
-
-                      <TabPanel value="curl" sx={{ p: 2 }}>
-                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                          <code>{codeSnippets.curl}</code>
+                          <code>{codeSnippets[codeTab]}</code>
                         </pre>
                       </TabPanel>
                     </TabContext>
@@ -484,14 +693,15 @@ const Landing = () => {
                     For Entrepreneurs
                   </Typography>
                   <Typography variant="body1" sx={{ mb: 6 }}>
-                    Get a real-time view of all customer conversations in one place. Monitor engagement and manage your team efficiently.
+                    Send messages, view messages and manage your devices from our robust dashboard. Never miss a customer regardless of the
+                    platform. .{' '}
                   </Typography>
                   <a href="mailto:developers@smswithoutborders.com?subject=Request%20Demo&body=Hi%20ShortMesh%20Team,%0A%0AI'd%20like%20to%20request%20a%20demo%20of%20your%20platform.%0A%0AThanks!">
                     <Button
                       variant="contained"
                       size="large"
                       sx={{
-                        borderRadius: 1,
+                        borderRadius: 7,
                         textTransform: 'none',
                         bgcolor: '#000000',
                         color: '#ffffff'
@@ -501,68 +711,60 @@ const Landing = () => {
                     </Button>
                   </a>
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Card
-                    variant="outlined"
+                <Grid size={{ xs: 12, md: 6 }} sx={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+                  {/* Main Dashboard Image */}
+                  <Box
+                    component="img"
+                    src="dash.png"
+                    alt="Dashboard preview"
                     sx={{
-                      p: 0,
+                      width: { md: '60%', xs: '80%' },
+                      borderColor: 'grey.300',
+                      border: 6,
                       borderRadius: 2,
-                      overflow: 'hidden',
-                      backgroundColor: '#F3F3F3',
-                      color: '#000000',
-                      fontFamily: 'monospace',
-                      minHeight: '300px'
+                      zIndex: 2
+                    }}
+                  />
+
+                  {/* Top-left Floating Box */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 60,
+                      left: 20,
+                      bgcolor: '#ffffff',
+                      px: 2,
+                      py: 1,
+                      borderRadius: 2,
+                      boxShadow: 3,
+                      border: '1px solid #ccc',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      zIndex: 2
                     }}
                   >
-                    <TabContext value={codeTab}>
-                      <TabList
-                        onChange={handleCodeTabChange}
-                        indicatorColor="primary"
-                        textColor="primary"
-                        sx={{
-                          backgroundColor: '#D8D8D8',
-                          px: 2
-                        }}
-                      >
-                        <Tab
-                          label="JavaScript"
-                          value="js"
-                          sx={{
-                            textTransform: 'none',
-                            color: '#000000',
-                            '&.Mui-selected': {
-                              color: '#000000',
-                              borderBottom: '2px solid #00ff99'
-                            }
-                          }}
-                        />
-                        <Tab
-                          label="cURL"
-                          value="curl"
-                          sx={{
-                            textTransform: 'none',
-                            color: '#000000',
-                            '&.Mui-selected': {
-                              color: '#000000',
-                              borderBottom: '2px solid #00ff99'
-                            }
-                          }}
-                        />
-                      </TabList>
+                    <PlusOutlined /> Send Message
+                  </Box>
 
-                      <TabPanel value="js" sx={{ p: 2 }}>
-                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                          <code>{codeSnippets.js}</code>
-                        </pre>
-                      </TabPanel>
-
-                      <TabPanel value="curl" sx={{ p: 2 }}>
-                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                          <code>{codeSnippets.curl}</code>
-                        </pre>
-                      </TabPanel>
-                    </TabContext>
-                  </Card>
+                  {/* Bottom-right Floating Box */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      bottom: -2,
+                      right: 30,
+                      bgcolor: '#ffffff',
+                      px: 2,
+                      py: 1,
+                      borderRadius: 2,
+                      boxShadow: 3,
+                      border: '1px solid #ccc',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      zIndex: 2
+                    }}
+                  >
+                    <EyeOutlined /> View Message
+                  </Box>
                 </Grid>
               </Grid>
             </TabPanel>

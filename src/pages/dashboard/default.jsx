@@ -20,6 +20,7 @@ import { faSignalMessenger } from '@fortawesome/free-brands-svg-icons';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
+import { TextField } from '@mui/material';
 
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
@@ -43,7 +44,8 @@ const API_URL = import.meta.env.VITE_APP_API_URL;
 const WS_URL = import.meta.env.VITE_APP_WEBSOCKET_URL;
 
 export default function DashboardDefault() {
-  const username = localStorage.getItem('username');
+  const access_token = localStorage.getItem('token');
+  const username = localStorage.getItem('username') || 'User';
 
   const apiKey = localStorage.getItem('token') || '';
   const apiKeysCount = apiKey ? 1 : 0;
@@ -58,6 +60,11 @@ export default function DashboardDefault() {
   const [loadingQr, setLoadingQr] = useState(false);
   const [qrTimeout, setQrTimeout] = useState(null);
   const [devices, setDevices] = useState([]);
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [webhookSaved, setWebhookSaved] = useState(false);
+  const [webhookError, setWebhookError] = useState('');
+  const [webhooks, setWebhooks] = useState([]);
+  const [showAddWebhook, setShowAddWebhook] = useState(false);
   const wsRef = useRef(null);
   const navigate = useNavigate();
 
@@ -126,8 +133,6 @@ export default function DashboardDefault() {
     setLoadingQr(true);
     if (qrTimeout) clearTimeout(qrTimeout);
     try {
-      const access_token = localStorage.getItem('token');
-      const username = localStorage.getItem('username') || 'User';
       let platformKey = name.toLowerCase();
       if (platformKey === 'whatsapp') platformKey = 'wa';
       const endpoint = `${API_URL}/${platformKey}/devices`;
@@ -237,6 +242,71 @@ export default function DashboardDefault() {
 
   const platformSet = new Set(devices.map((d) => d.platform));
 
+  useEffect(() => {
+    // Load existing webhook from DB
+    axios
+      .get(`${API_URL}/webhook`, {
+        headers: {
+          accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${access_token}`
+        }
+      })
+      .then((res) => {
+        // Support both single and multiple webhooks from API
+        if (Array.isArray(res.data)) {
+          setWebhooks(res.data);
+        } else if (res.data?.webhooks) {
+          setWebhooks(res.data.webhooks);
+        } else if (res.data?.url) {
+          setWebhooks([res.data.url]);
+        } else {
+          setWebhooks([]);
+        }
+        setWebhookUrl('');
+      });
+  }, []);
+
+  const handleSaveWebhook = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/webhook`,
+        { url: webhookUrl, username },
+        {
+          headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${access_token}`
+          }
+        }
+      );
+      setWebhookSaved(true);
+      setWebhookError('');
+      setShowAddWebhook(false);
+      // Refresh webhooks list
+      const res = await axios.get(`${API_URL}/webhook`, {
+        headers: {
+          accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${access_token}`
+        }
+      });
+      if (Array.isArray(res.data)) {
+        setWebhooks(res.data);
+      } else if (res.data?.webhooks) {
+        setWebhooks(res.data.webhooks);
+      } else if (res.data?.url) {
+        setWebhooks([res.data.url]);
+      } else {
+        setWebhooks([]);
+      }
+      setWebhookUrl('');
+      setTimeout(() => setWebhookSaved(false), 3000);
+    } catch (err) {
+      setWebhookError('Failed to save webhook.');
+    }
+  };
+
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
       <Grid sx={{ mb: 1 }} size={12}>
@@ -255,7 +325,7 @@ export default function DashboardDefault() {
       </Grid>
 
       {/* API Key Display */}
-      <Grid size={12}>
+      <Grid size={{ xs: 12, md: 12, lg: 12 }}>
         <MainCard title="API Key">
           {!apiKey ? (
             <Typography variant="body2" color="text.secondary">
@@ -277,15 +347,6 @@ export default function DashboardDefault() {
             </List>
           )}
         </MainCard>
-      </Grid>
-
-      {/* Add Platform Button */}
-      <Grid size={12}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1, gap: 2 }}>
-          <Button variant="contained" color="primary" startIcon={<PlusOutlined />} onClick={handleAddPlatformClick}>
-            Add Device
-          </Button>
-        </Box>
       </Grid>
 
       {/* Add Platform Flow (inline, like platforms/index.jsx) */}
@@ -403,8 +464,15 @@ export default function DashboardDefault() {
         </Grid>
       )}
       {/* Devices List */}
-      <Grid size={12}>
-        <MainCard title="Connected Devices">
+      <Grid size={{ xs: 12, md: 12, lg: 12 }}>
+        <MainCard
+          title="Connected Devices"
+          secondary={
+            <Button variant="text" color="primary" startIcon={<PlusOutlined />} onClick={handleAddPlatformClick} sx={{ ml: 2 }}>
+              Add Device
+            </Button>
+          }
+        >
           {devices.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
               No devices connected.
@@ -421,6 +489,78 @@ export default function DashboardDefault() {
           )}
         </MainCard>
       </Grid>
+
+      {/* Webhook */}
+      {/* <Grid size={{ xs: 12, md: 12, lg: 6 }}>
+        <MainCard
+          title="Webhooks"
+          secondary={
+            !showAddWebhook && (
+              <Button variant="text" color="primary" startIcon={<PlusOutlined />} onClick={() => setShowAddWebhook(true)} sx={{ ml: 2 }}>
+                Add Webhook
+              </Button>
+            )
+          }
+        >
+          {webhooks.length === 0 && !showAddWebhook && (
+            <Typography variant="body2" color="text.secondary">
+              No webhooks added.
+            </Typography>
+          )}
+
+          {webhooks.length > 0 && (
+            <List>
+              {webhooks.map((url, idx) => (
+                <ListItem key={url + idx} sx={{ pl: 0 }}>
+                  <ListItemText primary={url} />
+                </ListItem>
+              ))}
+            </List>
+          )}
+
+          {(showAddWebhook || webhooks.length === 0) && (
+            <>
+              <TextField
+                label="Your Webhook URL"
+                variant="filled"
+                fullWidth
+                value={webhookUrl}
+                onChange={(e) => setWebhookUrl(e.target.value)}
+                placeholder="https://yourdomain.com/webhook/messages"
+                sx={{ mb: 2, mt: 2 }}
+              />
+              <Box display="flex" gap={2}>
+                <Button size="small" variant="contained" onClick={handleSaveWebhook}>
+                  Save Webhook
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => {
+                    setShowAddWebhook(false);
+                    setWebhookUrl('');
+                    setWebhookError('');
+                  }}
+                >
+                  Cancel
+                </Button>
+              </Box>
+            </>
+          )}
+
+          {webhookSaved && (
+            <Alert severity="success" sx={{ mt: 2 }}>
+              Webhook added!
+            </Alert>
+          )}
+          {webhookError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {webhookError}
+            </Alert>
+          )}
+        </MainCard>
+      </Grid> */}
 
       {/* Filters Section */}
       <Grid size={{ xs: 12, md: 12, lg: 12 }}>
