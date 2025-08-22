@@ -14,7 +14,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 // project imports
 import MainCard from 'components/MainCard';
 import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
-import { CopyOutlined, WhatsAppOutlined, PlusOutlined } from '@ant-design/icons';
+import { CopyOutlined, WhatsAppOutlined, PlusOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignalMessenger } from '@fortawesome/free-brands-svg-icons';
 import { useState, useRef, useEffect } from 'react';
@@ -51,6 +51,7 @@ export default function DashboardDefault() {
   const apiKeysCount = apiKey ? 1 : 0;
 
   const [copiedKey, setCopiedKey] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
   const [addingPlatform, setAddingPlatform] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState('');
   const [pendingPlatform, setPendingPlatform] = useState('');
@@ -109,6 +110,10 @@ export default function DashboardDefault() {
     navigator.clipboard.writeText(key);
     setCopiedKey(key);
     setTimeout(() => setCopiedKey(''), 1500);
+  };
+
+  const toggleApiKeyVisibility = () => {
+    setShowApiKey(!showApiKey);
   };
 
   const handleAddPlatformClick = () => {
@@ -336,13 +341,31 @@ export default function DashboardDefault() {
               <ListItem
                 key={apiKey}
                 secondaryAction={
-                  <IconButton edge="end" aria-label="copy" onClick={() => handleCopy(apiKey)}>
-                    <CopyOutlined />
-                  </IconButton>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
+                    <IconButton
+                      sx={{ color: 'black', minWidth: 40 }}
+                      edge="end"
+                      aria-label="toggle visibility"
+                      onClick={toggleApiKeyVisibility}
+                    >
+                      {showApiKey ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                    </IconButton>
+                    <IconButton sx={{ color: 'black', minWidth: 40 }} edge="end" aria-label="copy" onClick={() => handleCopy(apiKey)}>
+                      <CopyOutlined />
+                    </IconButton>
+                  </Box>
                 }
-                sx={{ pl: 0 }}
+                sx={{ pl: 0, pr: 12 }}
               >
-                <ListItemText primary={apiKey} secondary={copiedKey === apiKey ? 'Copied!' : null} sx={{ wordBreak: 'break-all' }} />
+                <ListItemText
+                  primary={showApiKey ? apiKey : '•'.repeat(Math.min(apiKey.length, 40))}
+                  secondary={copiedKey === apiKey ? 'Copied!' : null}
+                  sx={{
+                    wordBreak: 'break-all',
+                    mr: 2,
+                    maxWidth: 'calc(100% - 120px)'
+                  }}
+                />
               </ListItem>
             </List>
           )}

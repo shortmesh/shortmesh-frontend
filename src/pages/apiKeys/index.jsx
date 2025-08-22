@@ -9,16 +9,21 @@ import ListItemText from '@mui/material/ListItemText';
 import IconButton from '@mui/material/IconButton';
 import MainCard from 'components/MainCard';
 import { useState } from 'react';
-import { CopyOutlined } from '@ant-design/icons';
+import { CopyOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
 export default function ApiKeys() {
   const apiKey = localStorage.getItem('token') || '';
   const [copiedKey, setCopiedKey] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
 
   const handleCopy = (key) => {
     navigator.clipboard.writeText(key);
     setCopiedKey(key);
     setTimeout(() => setCopiedKey(''), 1500);
+  };
+
+  const toggleApiKeyVisibility = () => {
+    setShowApiKey(!showApiKey);
   };
 
   return (
@@ -37,15 +42,34 @@ export default function ApiKeys() {
               <MainCard key={apiKey} sx={{ mb: 2, p: 0 }}>
                 <ListItem
                   secondaryAction={
-                    <IconButton edge="end" aria-label="copy" onClick={() => handleCopy(apiKey)}>
-                      <CopyOutlined />
-                    </IconButton>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
+                      <IconButton
+                        sx={{ color: 'black', minWidth: 40 }}
+                        edge="end"
+                        aria-label="toggle visibility"
+                        onClick={toggleApiKeyVisibility}
+                      >
+                        {showApiKey ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                      </IconButton>
+                      <IconButton sx={{ color: 'black', minWidth: 40 }} edge="end" aria-label="copy" onClick={() => handleCopy(apiKey)}>
+                        <CopyOutlined />
+                      </IconButton>
+                    </Box>
                   }
+                  sx={{ pr: 12 }}
                 >
                   <ListItemIcon>
                     <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'primary.main', mr: 1 }} />
                   </ListItemIcon>
-                  <ListItemText primary={apiKey} secondary={copiedKey === apiKey ? 'Copied!' : null} sx={{ wordBreak: 'break-all' }} />
+                  <ListItemText
+                    primary={showApiKey ? apiKey : '•'.repeat(Math.min(apiKey.length, 40))}
+                    secondary={copiedKey === apiKey ? 'Copied!' : null}
+                    sx={{
+                      wordBreak: 'break-all',
+                      mr: 2,
+                      maxWidth: 'calc(100% - 120px)'
+                    }}
+                  />
                 </ListItem>
               </MainCard>
             </List>
