@@ -1,0 +1,1 @@
+import{j as r,G as n,T as i}from"./index-mIG69d0_.js";function a(){return r.jsx(n,{container:!0,rowSpacing:4.5,columnSpacing:2.75,children:r.jsx(n,{item:!0,xs:12,children:r.jsx(i,{variant:"h5",children:"Analytics"})})})}export{a as default};

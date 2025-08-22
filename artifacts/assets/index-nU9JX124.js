@@ -1,0 +1,1 @@
+import{j as i,G as r,T as n}from"./index-mIG69d0_.js";function a(){return i.jsx(r,{container:!0,rowSpacing:4.5,columnSpacing:2.75,children:i.jsx(r,{item:!0,xs:12,children:i.jsx(n,{variant:"h5",children:"Subscription and Billling "})})})}export{a as default};
