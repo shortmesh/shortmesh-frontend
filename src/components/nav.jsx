@@ -38,7 +38,7 @@ const Nav = () => {
         alignItems: 'center',
         justifyContent: 'space-between',
         backdropFilter: scrolled ? 'blur(10px)' : 'none',
-        backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.75)' : 'transparent',
+        backgroundColor: '#fff',
         transition: 'all 0.3s ease-in-out',
         borderBottom: scrolled ? '1px solid rgba(0,0,0,0.05)' : 'none'
       }}
@@ -52,7 +52,7 @@ const Nav = () => {
       </Box>
 
       {/* Middle Links */}
-      <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 4, ml: 18 }}>
+      {/* <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 4, ml: 18 }}>
         <a href="#features" style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}>
           Features
         </a>
@@ -70,12 +70,31 @@ const Nav = () => {
         <a href="#pricing" style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}>
           Pricing
         </a>
-      </Box>
+      </Box> */}
 
       {/* Right Buttons */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         {/* Desktop Buttons */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
+          <Button component="a" variant="text" href="#features" style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}>
+            Features
+          </Button>
+          <Button
+            component="a"
+            variant="text"
+            href="https://api.shortmesh.com/tutorials"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}
+          >
+            API Docs
+          </Button>
+          <Button component="a" variant="text" href="#self-host" style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}>
+            Self-Host
+          </Button>
+          <Button component="a" variant="text" href="#pricing" style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}>
+            Pricing
+          </Button>
           <AnimateButton>
             <Button
               component="a"

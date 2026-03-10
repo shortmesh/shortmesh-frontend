@@ -45,8 +45,8 @@ function BannerImage() {
         margin: '0 auto',
         position: 'relative',
         overflow: 'hidden',
-        minHeight: { xs: '300px', sm: '300px', md: '350px' },
-        height: { xs: '20vh', sm: '300px', md: '350px' }
+        // minHeight: { xs: '300px', sm: '300px', md: '350px' },
+        height: { xs: '20vh', sm: '300px', md: '170px' }
       }}
     >
       <svg
@@ -79,7 +79,7 @@ function BannerImage() {
                 stroke="#ccc"
                 strokeWidth="0.5"
               />
-              {generateMovingCircles(2, `path-${index}`, 6, 'smallCircleGradient', offsets)}
+              {generateMovingCircles(1, `path-${index}`, 6, 'smallCircleGradient', offsets)}
             </React.Fragment>
           );
         })}

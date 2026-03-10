@@ -1,4 +1,5 @@
 import { lazy } from 'react';
+import { Navigate } from 'react-router-dom';
 
 // project imports
 import Loadable from 'components/Loadable';
@@ -23,6 +24,7 @@ const Platforms = Loadable(lazy(() => import('pages/platforms/index')));
 const Analytics = Loadable(lazy(() => import('pages/analytics/index')));
 const Subscription = Loadable(lazy(() => import('pages/subscription/index')));
 const Settings = Loadable(lazy(() => import('pages/settings/index')));
+const Authy = Loadable(lazy(() => import('pages/authy/index')));
 const Documentation = Loadable(lazy(() => import('pages/extra-pages/documentation')));
 const Help = Loadable(lazy(() => import('pages/extra-pages/help')));
 const OnboardingStepper = Loadable(lazy(() => import('pages/onboarding/first')));
@@ -35,7 +37,7 @@ const MainRoutes = {
   children: [
     {
       path: '/',
-      element: <Landing />
+      element: <Navigate to="/dashboard" replace />
     },
     { path: '*', element: <NotFound /> },
     { path: 'pricing', element: <Pricing /> },
@@ -56,6 +58,7 @@ const MainRoutes = {
         { path: 'platforms', element: <Platforms /> },
         { path: 'analytics', element: <Analytics /> },
         { path: 'api-keys', element: <ApiKeys /> },
+        { path: 'authy', element: <Authy /> },
         { path: 'subscription', element: <Subscription /> },
         { path: 'settings', element: <Settings /> },
         { path: 'documentation', element: <Documentation /> },

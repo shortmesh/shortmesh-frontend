@@ -24,7 +24,7 @@ export default function DrawerHeader({ open }) {
         alt="Logo"
         style={{
           width: open ? 'auto' : 35,
-          height: 35
+          height: open ? 50 : 30
         }}
       />
     </DrawerHeaderStyled>

@@ -13,7 +13,8 @@ import {
   Chip,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  Icon
 } from '@mui/material';
 import { Tabs, Tab } from '@mui/material';
 import Grid from '@mui/material/Grid2';
@@ -35,12 +36,17 @@ import {
   RobotOutlined,
   SecurityScanOutlined,
   ThunderboltOutlined,
-  UsergroupAddOutlined
+  UsergroupAddOutlined,
+  CheckSquareOutlined,
+  ExportOutlined,
+  CommentOutlined,
+  WhatsAppOutlined
 } from '@ant-design/icons';
 import BannerImage from '../../components/BannerImage';
 import AnimateButton from 'components/@extended/AnimateButton';
 import APIFlow from './APIFlow';
 import ChatBubbles from './ChatBubbles';
+import MessageAlerts from '../../components/MessageAlerts';
 import { Link } from 'react-router';
 import Nav from '../../components/nav';
 
@@ -183,11 +189,11 @@ const Landing = () => {
         sx={{
           minHeight: '100vh',
           overflow: 'auto',
-          bgcolor: '#EFEFEF'
+          bgcolor: '#F4F4F4'
         }}
       >
         <Nav />
-        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', pt: { xs: 8, md: 14 } }}>
+        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', pt: { xs: 8, md: 14 }, bgcolor: '#2B2B2B' }}>
           <Box
             sx={{
               position: 'absolute',
@@ -195,68 +201,88 @@ const Landing = () => {
               left: { md: -0, xs: -50 },
               width: { md: 800, xs: 80 },
               height: { md: 400, xs: 80 },
-              background: 'radial-gradient(circle, rgba(202, 215, 248, 0.63) 0%, transparent 70%)',
+              // background: 'radial-gradient(circle, rgba(202, 215, 248, 0.63) 0%, transparent 70%)',
               filter: 'blur(100px)',
               zIndex: 0
             }}
           />
           <Box
             sx={{
-              pt: { xs: 13, sm: 15, md: 2, xl: 10 },
+              py: { xs: 13, sm: 15, md: 2, xl: 20 },
               my: 'auto',
+              display: 'flex',
               alignContent: 'center',
               textAlign: 'center',
-              px: { xs: 2, sm: 6, md: 10, lg: 35, xl: 55 },
+              px: { xs: 2, sm: 6, md: 10, lg: 20, xl: 45 },
               zIndex: 1
             }}
             wrap
           >
             <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-              <Chip color="primary" variant="outlined" label="ShortMesh" sx={{ borderRadius: 7, bgcolor: '#fff', mb: 3 }} />
-              <Chip color="success" variant="outlined" label="Open-Source" sx={{ borderRadius: 7, bgcolor: '#fff', mb: 3, ml: 1 }} />
+              {/* <Chip
+                color="primary"
+                size="small"
+                variant="outlined"
+                label="ShortMesh"
+                sx={{ borderRadius: 7, bgcolor: '#ecececff', mb: 3 }}
+              /> */}
+              <Chip
+                size="small"
+                variant="outlined"
+                label="Open-Source"
+                sx={{ borderRadius: 7, bgcolor: '#4357AD', mb: 3, ml: 1, borderColor: '#999999', color: '#fff' }}
+              />
+              <Chip
+                color="primary"
+                size="small"
+                variant="outlined"
+                label="API"
+                sx={{ borderRadius: 7, bgcolor: '#4357AD', mb: 3, ml: 1, borderColor: '#999999', color: '#fff' }}
+              />
+
               <Typography
                 variant="h1"
                 sx={{
-                  background: 'linear-gradient(90deg,rgb(123, 30, 146),rgb(7, 12, 36),hsl(216, 81.10%, 33.10%))',
+                  background: 'linear-gradient(90deg,#6984F9,rgba(230, 234, 255, 1),hsla(0, 0%, 96%, 1.00))',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   fontWeight: 'bold',
-                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                  fontSize: { xs: '2rem', sm: '2.5rem', md: '4rem' },
                   mixBlendMode: 'hard-light',
-                  letterSpacing: 0,
                   color: 'black'
                 }}
-                className="header"
               >
-                Messaging bridge API that lets you send and recieve messages across different platforms.{' '}
+                Messaging bridge API that lets you send and receive messages across different platforms.{' '}
               </Typography>
               <Typography
                 variant="h6"
                 sx={{
                   py: { md: 6, xs: 4 },
-                  fontSize: { xs: '1rem', sm: '1.2rem', md: '1.3rem' }
+                  fontSize: { xs: '1rem', sm: '1.2rem', md: '1.3rem' },
+                  textWrap: 'wrap',
+                  px: { xs: 0, md: 10 },
+                  color: '#F4F4F4'
                 }}
                 wrap
               >
-                Our API lets you access and manage messages from major social <br />
-                media platforms through a single, developer-friendly API.
+                Send and receive messages across WhatsApp, Signal, and more, using a single, unified API connected to your existing phone
+                accounts.
+                <br />
+                No template approvals. No per-message fees. No platform headaches.
               </Typography>
-              <Grid container justifyContent="center" spacing={1} sx={{ mt: 3 }}>
+              <Grid container spacing={1} sx={{ mt: 3, justifyContent: 'center', alignItems: 'center' }}>
                 {' '}
                 <Grid
                   item
                   xs={6}
                   sx={{
                     display: 'flex',
-                    justifyContent: 'flex-end',
+                    justifyContent: 'center',
                     alignItems: 'center',
                     pr: { xs: 0.5, sm: 1 }
                   }}
                 >
-                  <a
-                    href="mailto:developers@smswithoutborders.com?subject=Request%20Demo&body=Hi%20ShortMesh%20Team,%0A%0AI'd%20like%20to%20request%20a%20demo%20of%20your%20platform.%0A%0AThanks!"
-                    style={{ textDecoration: 'none' }}
-                  >
+                  <a href="/dashboard" style={{ textDecoration: 'none' }}>
                     <Button
                       size="large"
                       sx={{
@@ -268,7 +294,7 @@ const Landing = () => {
                       }}
                       variant="contained"
                     >
-                      Request Demo
+                      Get Started
                     </Button>
                   </a>
                 </Grid>
@@ -286,22 +312,21 @@ const Landing = () => {
                 >
                   <a href="https://api.shortmesh.com/tutorials" target="_blank" style={{ textDecoration: 'none' }}>
                     <Typography
-                      endIcon={<ArrowRightOutlined />}
                       variant="body1"
                       sx={{
-                        color: '#000000',
+                        color: '#ffffffff',
                         fontWeight: 'bold',
                         fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' }
                       }}
                     >
-                      Get Started Quickly
+                      Documentation <ExportOutlined style={{ marginLeft: 4 }} />
                     </Typography>
                   </a>
                   <Divider
                     sx={{
-                      width: '100%',
-                      borderBottomWidth: '2px',
-                      borderColor: '#000000',
+                      width: '120%',
+                      borderBottomWidth: '1px',
+                      borderColor: '#ffffffff',
                       mt: 0.5
                     }}
                   />
@@ -311,23 +336,22 @@ const Landing = () => {
           </Box>
 
           {/* Image section */}
-          <Box
+          {/* <Box
             sx={{
               width: '100%',
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center'
-              //my: { xs: 4, md: 3 },
             }}
           >
             <BannerImage />
-          </Box>
+          </Box> */}
         </Box>
 
         {/*  */}
 
-        <Box id="features">
-          <Box sx={{ px: { md: 15, sm: 10, lg: 20, xs: 2 }, bgcolor: '#ffffff', py: { xs: 4, md: 0 } }}>
+        {/* <Box id="features">
+          <Box sx={{ px: { xs: 2, md: 15, sm: 10, lg: 25 }, bgcolor: '#ffffff', py: { xs: 4, md: 0 } }}>
             <Grid container alignItems="stretch" justifyContent="center" alignContent="center">
               {[
                 {
@@ -349,10 +373,15 @@ const Landing = () => {
                   icon: <UsergroupAddOutlined style={{ fontSize: 30, color: '#000' }} />,
                   title: 'Multi-Platform Support',
                   description: 'We currently support more than one platform, and we are actively working to add more platforms.'
+                },
+                {
+                  icon: <CheckSquareOutlined style={{ fontSize: 30, color: '#000' }} />,
+                  title: 'Open-Source & Self-Hostable',
+                  description: 'Get full control of your data. Deploy your own instance or use our hosted version.'
                 }
               ].map((item, index) => (
                 <Grid
-                  size={{ xs: 12, sm: 6, md: 3 }}
+                  size={{ xs: 12, sm: 6, md: 2.4 }}
                   key={index}
                   sx={{
                     display: 'flex',
@@ -376,6 +405,174 @@ const Landing = () => {
               ))}
             </Grid>
           </Box>
+        </Box> */}
+
+        <Box id="features" sx={{ py: 10, position: 'relative', zIndex: 1 }}>
+          <Box sx={{ px: { xs: 2, md: 15, sm: 10, lg: 25 }, py: 10 }}>
+            <Typography
+              className="header"
+              variant="body1"
+              sx={{ fontSize: { xs: '1rem', sm: '1.2rem', md: '1.3rem' }, textAlign: 'center', px: { xs: 0, md: 10 } }}
+            >
+              ShortMesh is an open-source messaging bridge that lets you access, send, and manage messages from major communication
+              platforms through one simple API interface.
+            </Typography>
+          </Box>
+          <Grid container spacing={4} sx={{ px: { xs: 2, md: 10, sm: 6, lg: 20, xl: 30 }, py: 6 }}>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Card
+                elevation={0}
+                sx={{ border: '1px solid #E0E0E0', bgcolor: '#FAFAFA', width: '400px', py: 6, px: 2, borderRadius: 4, height: '100%' }}
+              >
+                <CardContent>
+                  <Icon sx={{ width: 40, height: 40 }}>
+                    <ApiOutlined />
+                  </Icon>
+                  <Typography variant="h4" sx={{ mt: 2 }}>
+                    API Integration
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 1, color: 'grey', fontSize: { xs: '0.9rem', sm: '1rem', md: '1rem' } }}>
+                    Get secure API keys instantly and start integrating social inboxes with minimal setup.Seamlessly integrate with your
+                    existing workflows using our RESTful API.
+                  </Typography>
+                </CardContent>
+                <Box sx={{ height: 100 }}>
+                  <BannerImage />
+                </Box>
+              </Card>
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Card
+                elevation={0}
+                sx={{ border: '1px solid #E0E0E0', bgcolor: '#FAFAFA', width: '400px', py: 6, px: 2, borderRadius: 4, height: '100%' }}
+              >
+                <CardContent>
+                  <Icon sx={{ width: 40, height: 40 }}>
+                    <CommentOutlined />
+                  </Icon>
+                  <Typography variant="h4" sx={{ mt: 2 }}>
+                    Messaging Support
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 1, color: 'grey', fontSize: { xs: '0.9rem', sm: '1rem', md: '1rem' } }}>
+                    Send messages using our API, receive messages in real-time by setting up a webhook.
+                  </Typography>
+                </CardContent>
+                <Box sx={{ mt: 2, p: 2 }}>
+                  <MessageAlerts />
+                </Box>
+              </Card>
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Card
+                elevation={0}
+                sx={{ border: '1px solid #E0E0E0', bgcolor: '#FAFAFA', width: '400px', py: 6, px: 2, borderRadius: 4, height: '100%' }}
+              >
+                <CardContent>
+                  <Icon sx={{ width: 40, height: 40 }}>
+                    <DashboardOutlined />
+                  </Icon>
+                  <Typography variant="h4" sx={{ mt: 2 }}>
+                    Dashboard Insight
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 1, color: 'grey', fontSize: { xs: '0.9rem', sm: '1rem', md: '1rem' } }}>
+                    Our dashboard lets you manage your accounts, add devices and access your API keys all in one place.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card elevation={0} sx={{ border: '1px solid #E0E0E0', py: 6, px: 2, borderRadius: 4, height: '100%' }}>
+                <CardContent>
+                  {/* <Icon sx={{ width: 40, height: 40 }}>
+                    <UsergroupAddOutlined />
+                  </Icon> */}
+                  <Grid container>
+                    <Grid size={{ xs: 12, md: 2 }}>
+                      <Paper
+                        elevation={2}
+                        sx={{
+                          p: 2,
+                          bgcolor: '#2e5e13ff',
+                          mb: 2,
+                          width: 60,
+                          height: 60,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          display: 'flex',
+                          borderRadius: '8px'
+                        }}
+                      >
+                        <Box component="img" src="White.png" sx={{ width: 40 }} />
+                      </Paper>
+                      <Box
+                        sx={{
+                          width: 2,
+                          height: 20,
+                          backgroundColor: '#ddd',
+                          // mx: 'auto',
+                          // alignItems: 'center',
+                          // justifyContent: 'center',
+                          // display: 'flex',
+                          ml: 4,
+                          position: 'relative',
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            bottom: -5,
+                            left: -3,
+                            width: 0,
+                            height: 0,
+                            borderLeft: '4px solid transparent',
+                            borderRight: '4px solid transparent',
+                            borderTop: '8px solid #ddd'
+                          }
+                        }}
+                      />
+                      <Paper
+                        elevation={2}
+                        sx={{
+                          p: 2,
+                          bgcolor: '#f5f5f5',
+                          width: 60,
+                          height: 60,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          display: 'flex',
+                          borderRadius: '8px',
+                          mt: 4
+                        }}
+                      >
+                        <Box component="img" src="Signal-Logo.svg" sx={{ color: '#e2edfaff', width: 40 }} />
+                      </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 10 }}>
+                      <Typography variant="h4" sx={{ mt: 2 }}>
+                        Cross-Platform Messaging
+                      </Typography>
+                      <Typography variant="body1" sx={{ mt: 1, color: 'grey', fontSize: { xs: '0.9rem', sm: '1rem', md: '1rem' } }}>
+                        Send and receive messages across supported platforms from one endpoint.
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Card elevation={0} sx={{ border: '1px solid #E0E0E0', width: '400px', py: 6, px: 2, borderRadius: 4, height: '100%' }}>
+                <CardContent>
+                  <Icon sx={{ width: 40, height: 40 }}>
+                    <CheckSquareOutlined />
+                  </Icon>
+                  <Typography variant="h4" sx={{ mt: 2 }}>
+                    Open-Source & Self-Hostable
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 1, color: 'grey', fontSize: { xs: '0.9rem', sm: '1rem', md: '1rem' } }}>
+                    Get full control of your data. Deploy your own instance or use our hosted version.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
         </Box>
 
         {/*  */}

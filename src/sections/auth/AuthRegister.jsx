@@ -62,13 +62,13 @@ export default function AuthRegister() {
     <>
       <Formik
         initialValues={{
-          username: '',
+          email: '',
           password: '',
           repeatPassword: '',
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          username: Yup.string().max(255).required('Username is required'),
+          email: Yup.string().email('Invalid email').max(255).required('Email is required'),
           password: Yup.string()
             .required('Password is required')
             .test('no-leading-trailing-whitespace', 'Password cannot start or end with spaces', (value) => value === value.trim())
@@ -83,15 +83,22 @@ export default function AuthRegister() {
           setLoading(true);
           try {
             const API_URL = import.meta.env.VITE_APP_API_URL;
-            const res = await axios.post(`${API_URL}/`, {
-              username: values.username,
+            const res = await axios.post(`${API_URL}/auth/register`, {
+              email: values.email,
               password: values.password
             });
             console.log('Register server response:', res.data);
-            if (res.data?.access_token && (res.data?.status === 'created' || res.data?.status === 'logged in')) {
+            const token = res.data?.access_token || res.data?.token;
+            const isSuccess =
+              token &&
+              (res.data?.status === 'created' ||
+                res.data?.status === 'logged in' ||
+                res.data?.message?.toLowerCase().includes('created') ||
+                res.data?.message?.toLowerCase().includes('success'));
+            if (isSuccess) {
               localStorage.setItem('isAuthenticated', 'true');
-              localStorage.setItem('token', res.data.access_token);
-              localStorage.setItem('username', values.username); // Save username
+              localStorage.setItem('token', token);
+              localStorage.setItem('email', values.email); // Save email
               setSuccessMsg('Signup successful! Redirecting...');
               setTimeout(() => {
                 resetForm();
@@ -132,22 +139,22 @@ export default function AuthRegister() {
               )}
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
-                  <InputLabel htmlFor="username-signup">Username*</InputLabel>
+                  <InputLabel htmlFor="email-signup">Email*</InputLabel>
                   <OutlinedInput
                     fullWidth
-                    error={Boolean(touched.username && errors.username)}
-                    id="username-signup"
+                    error={Boolean(touched.email && errors.email)}
+                    id="email-signup"
                     type="text"
-                    value={values.username}
-                    name="username"
+                    value={values.email}
+                    name="email"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="Enter username"
+                    placeholder="Enter email"
                   />
                 </Stack>
-                {touched.username && errors.username && (
-                  <FormHelperText error id="helper-text-username-signup">
-                    {errors.username}
+                {touched.email && errors.email && (
+                  <FormHelperText error id="helper-text-email-signup">
+                    {errors.email}
                   </FormHelperText>
                 )}
               </Grid>

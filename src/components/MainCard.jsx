@@ -14,6 +14,7 @@ const headerSX = {
 
 export default function MainCard({
   border = true,
+  borderRadius = 1,
   boxShadow,
   children,
   subheader,
@@ -37,7 +38,7 @@ export default function MainCard({
         (theme) => ({
           position: 'relative',
           border: border ? '1px solid' : 'none',
-          borderRadius: 1,
+          borderRadius: typeof borderRadius === 'number' ? borderRadius : borderRadius ? 1 : 0,
           borderColor: 'grey.A800',
           boxShadow: boxShadow && !border ? shadow || theme.customShadows.z1 : 'inherit',
           ':hover': {
@@ -75,6 +76,7 @@ export default function MainCard({
 
 MainCard.propTypes = {
   border: PropTypes.bool,
+  borderRadius: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
   boxShadow: PropTypes.bool,
   children: PropTypes.node,
   subheader: PropTypes.oneOfType([PropTypes.node, PropTypes.string]),

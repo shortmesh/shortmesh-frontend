@@ -17,7 +17,7 @@ export default function AuthBackground() {
         transform: 'inherit'
       }}
     >
-      <Box component="img" src="/background.png" alt="background" width="100%" height="100%" />
+      {/* <Box component="img" src="/background.png" alt="background" width="100%" height="100%" /> */}
     </Box>
   );
 }

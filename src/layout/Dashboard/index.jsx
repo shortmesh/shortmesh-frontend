@@ -11,6 +11,7 @@ import Header from './Header';
 import Footer from './Footer';
 import Loader from 'components/Loader';
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
+import ComposeMessage from './Header/HeaderContent/ComposeMessage';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
@@ -49,6 +50,7 @@ export default function DashboardLayout() {
           <Footer />
         </Box>
       </Box>
+      <ComposeMessage />
     </Box>
   );
 }

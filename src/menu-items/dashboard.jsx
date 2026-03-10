@@ -1,27 +1,11 @@
 // assets
-import {
-  DashboardOutlined,
-  CommentOutlined,
-  MessageOutlined,
-  CheckSquareOutlined,
-  UsergroupAddOutlined,
-  RiseOutlined,
-  ApiOutlined,
-  CreditCardOutlined,
-  SettingOutlined
-} from '@ant-design/icons';
+import { DashboardOutlined, ApiOutlined, AppstoreOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
   DashboardOutlined,
-  MessageOutlined,
-  CheckSquareOutlined,
-  UsergroupAddOutlined,
-  RiseOutlined,
   ApiOutlined,
-  CreditCardOutlined,
-  SettingOutlined,
-  CommentOutlined
+  AppstoreOutlined
 };
 
 // ==============================|| MENU ITEMS - DASHBOARD ||============================== //
@@ -40,19 +24,11 @@ const dashboard = {
       breadcrumbs: false
     },
     {
-      id: 'posts',
-      title: 'Posts',
-      type: 'item',
-      url: '/posts',
-      icon: icons.CommentOutlined,
-      breadcrumbs: false
-    },
-    {
       id: 'platforms',
       title: 'Platforms',
       type: 'item',
       url: '/platforms',
-      icon: icons.UsergroupAddOutlined,
+      icon: icons.AppstoreOutlined,
       breadcrumbs: false
     },
     // {
@@ -69,22 +45,6 @@ const dashboard = {
       type: 'item',
       url: '/api-keys',
       icon: icons.ApiOutlined,
-      breadcrumbs: false
-    },
-    // {
-    //   id: 'subscription',
-    //   title: 'Subscription & Billing',
-    //   type: 'item',
-    //   url: '/subscription',
-    //   icon: icons.CreditCardOutlined,
-    //   breadcrumbs: false
-    // },
-    {
-      id: 'settings',
-      title: 'Settings',
-      type: 'item',
-      url: '/settings',
-      icon: icons.SettingOutlined,
       breadcrumbs: false
     }
   ]

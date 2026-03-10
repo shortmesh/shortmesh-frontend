@@ -34,7 +34,7 @@ export default function Palette(mode, presetColor) {
 
   return createTheme({
     palette: {
-      main: '#3F51B5',
+      main: '#4357AD',
       mode,
       common: {
         black: '#000',
