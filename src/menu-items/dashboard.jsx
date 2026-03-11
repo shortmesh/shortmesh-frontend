@@ -40,8 +40,8 @@ const dashboard = {
     //   breadcrumbs: false
     // },
     {
-      id: 'api-keys',
-      title: 'API Keys',
+      id: 'tokens',
+      title: 'Tokens',
       type: 'item',
       url: '/api-keys',
       icon: icons.ApiOutlined,

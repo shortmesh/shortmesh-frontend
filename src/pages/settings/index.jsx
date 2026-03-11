@@ -57,6 +57,7 @@ export default function Settings() {
 
   const handleLogout = () => {
     localStorage.clear();
+    sessionStorage.clear();
     window.location.href = '/login';
   };
 

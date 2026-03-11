@@ -73,10 +73,11 @@ export default function AuthLogin({ isDemo = false }) {
               password: values.password
             });
             console.log('Login server response:', res.data);
-            if (res.data?.access_token && res.data?.status === 'logged in') {
+            const token = res.data?.access_token || res.data?.token;
+            if (token) {
               localStorage.setItem('isAuthenticated', 'true');
-              localStorage.setItem('token', res.data.access_token);
-              localStorage.setItem('email', values.email); // Save email
+              localStorage.setItem('token', token);
+              localStorage.setItem('email', values.email);
               setSuccessMsg('Login successful! Redirecting...');
               setTimeout(() => {
                 navigate('/dashboard');

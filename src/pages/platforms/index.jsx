@@ -4,10 +4,10 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
 import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
@@ -19,104 +19,76 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 
 // icons
-import { AppstoreOutlined, DeleteOutlined, PlusOutlined, WhatsAppOutlined } from '@ant-design/icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSignalMessenger } from '@fortawesome/free-brands-svg-icons';
+import { AppstoreOutlined, DeleteOutlined, PlusOutlined, WhatsAppOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { QRCodeSVG } from 'qrcode.react';
 import { useState, useRef, useEffect } from 'react';
-import { QRCodeCanvas } from 'qrcode.react';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
-const WS_URL = import.meta.env.VITE_APP_WEBSOCKET_URL;
 
 const platformStyles = {
-  WhatsApp: {
-    hoverBg: '#25D366',
-    color: '#fff'
-  },
-  Signal: {
-    hoverBg: '#3A76F0',
-    color: '#fff'
-  }
+  WhatsApp: { hoverBg: '#25D366', color: '#fff' }
 };
 
-const availablePlatforms = [
-  {
-    name: 'WhatsApp',
-    img: <WhatsAppOutlined />
-  },
-  {
-    name: 'Signal',
-    img: <FontAwesomeIcon icon={faSignalMessenger} />
-  }
-];
-
 const platformIcons = {
-  WhatsApp: <WhatsAppOutlined style={{ color: '#25D366' }} />,
-  Signal: <FontAwesomeIcon icon={faSignalMessenger} style={{ color: '#3A76F0' }} />
+  WhatsApp: <WhatsAppOutlined style={{ color: '#25D366' }} />
 };
 
 export default function Platforms() {
-  const [addingPlatform, setAddingPlatform] = useState(false);
   const [addDeviceDialogOpen, setAddDeviceDialogOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState('');
-  const [pendingPlatform, setPendingPlatform] = useState('');
   const [deviceMsg, setDeviceMsg] = useState('');
   const [deviceError, setDeviceError] = useState('');
-  const [qrImage, setQrImage] = useState(null); // <-- add this line
+  const [qrImage, setQrImage] = useState(null);
   const [loadingQr, setLoadingQr] = useState(false);
-  const [qrTimeout, setQrTimeout] = useState(null);
   const [devices, setDevices] = useState([]);
+  const [deviceConnected, setDeviceConnected] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deviceToDelete, setDeviceToDelete] = useState(null);
+  const [deletingDevice, setDeletingDevice] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const wsRef = useRef(null);
+  const wsGotDataRef = useRef(false);
 
-  let platforms = [];
-
-  const platformsCount = Array.isArray(platforms) ? platforms.length : 0;
+  const getHeaders = () => ({
+    accept: 'application/json',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${sessionStorage.getItem('api_token')}`
+  });
 
   const fetchPlatforms = async () => {
-    const access_token = localStorage.getItem('token');
-    const username = localStorage.getItem('username') || 'User';
-    const headers = {
-      accept: 'application/json',
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${access_token}`
-    };
-
-    const platformMap = {
-      wa: 'WhatsApp',
-      signal: 'Signal'
-    };
-
-    const allDevices = [];
-    await Promise.all(
-      Object.keys(platformMap).map(async (key) => {
-        try {
-          const response = await axios.get(`${API_URL}/devices`, { headers });
-          console.log(`${key.toUpperCase()} devices:`, response.data);
-          (response.data?.devices || []).forEach((id) => {
-            allDevices.push({ platform: platformMap[key], id });
-          });
-        } catch (err) {
-          console.error(`Error fetching ${key} devices`, err);
-        }
-      })
-    );
-    setDevices(allDevices);
+    const platformMap = { wa: 'WhatsApp' };
+    try {
+      const response = await axios.get(`${API_URL}/devices`, { headers: getHeaders() });
+      console.log('GET /devices response:', response.data);
+      const rawList = Array.isArray(response.data) ? response.data : response.data?.devices || response.data?.data || [];
+      const allDevices = rawList.map((item) => {
+        if (typeof item === 'string') return { platform: 'Unknown', id: item, rawPlatform: '' };
+        const id = item.id || item.device_id || item.name || JSON.stringify(item);
+        const rawPlatform = item.platform || item.type || '';
+        const platform = platformMap[rawPlatform] || rawPlatform || 'Unknown';
+        return { platform, id, rawPlatform };
+      });
+      setDevices(allDevices);
+    } catch (err) {
+      console.error('Error fetching devices:', err);
+    }
   };
 
   useEffect(() => {
-    fetchPlatforms();
+    if (sessionStorage.getItem('api_token')) fetchPlatforms();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAddPlatformClick = () => {
-    setAddingPlatform(true);
     setAddDeviceDialogOpen(true);
     setSelectedPlatform('');
     setDeviceMsg('');
     setDeviceError('');
     setQrImage(null);
     setLoadingQr(false);
+    setDeviceConnected(false);
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
@@ -124,28 +96,15 @@ export default function Platforms() {
   };
 
   const handlePlatformSelect = async (name) => {
-    console.log('handlePlatformSelect called with:', name);
     setSelectedPlatform(name);
-    setPendingPlatform(name);
     setDeviceMsg('');
     setDeviceError('');
     setQrImage(null);
     setLoadingQr(true);
-    if (qrTimeout) clearTimeout(qrTimeout);
     try {
-      const access_token = localStorage.getItem('token');
       let platformKey = name.toLowerCase();
       if (platformKey === 'whatsapp') platformKey = 'wa';
-      const endpoint = `${API_URL}/devices`;
-      const payload = { platform: platformKey };
-      console.log('Creating device with payload:', payload);
-      const res = await axios.post(endpoint, payload, {
-        headers: {
-          accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${access_token}`
-        }
-      });
+      const res = await axios.post(`${API_URL}/devices`, { platform: platformKey }, { headers: getHeaders() });
       console.log('POST /devices response:', res.data);
       setDeviceMsg('Waiting for QR code...');
       const rawWsUrl = res.data?.websocket_url || res.data?.qr_code_url || res.data?.ws_url || res.data?.socket_url;
@@ -154,54 +113,44 @@ export default function Platforms() {
         setLoadingQr(false);
         return;
       }
-      let wsUrl;
-      if (rawWsUrl.startsWith('ws')) {
-        wsUrl = rawWsUrl;
-      } else {
-        const apiOrigin = new URL(API_URL).origin;
-        const wsOrigin = apiOrigin.replace(/^https/, 'wss').replace(/^http/, 'ws');
-        wsUrl = `${wsOrigin}${rawWsUrl}`;
+      let wsUrl = rawWsUrl.startsWith('ws')
+        ? rawWsUrl
+        : (() => {
+            const wsOrigin = new URL(API_URL).origin.replace(/^https/, 'wss').replace(/^http/, 'ws');
+            return `${wsOrigin}${rawWsUrl}`;
+          })();
+      const wsApiToken = sessionStorage.getItem('api_token');
+      if (!wsUrl.includes('token=')) {
+        wsUrl = `${wsUrl}${wsUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(wsApiToken)}`;
       }
-      const token = localStorage.getItem('token');
-      wsUrl = `${wsUrl}?token=${encodeURIComponent(token)}`;
       console.log('Connecting to WebSocket:', wsUrl);
       try {
-        wsRef.current = new window.WebSocket(wsUrl, ['Bearer', token]);
+        wsGotDataRef.current = false;
+        wsRef.current = new window.WebSocket(wsUrl);
         wsRef.current.binaryType = 'blob';
-        wsRef.current.onopen = () => {
-          console.log('WebSocket connected successfully to:', wsUrl);
-        };
+        wsRef.current.onopen = () => console.log('WebSocket connected:', wsUrl);
         wsRef.current.onmessage = (event) => {
           setLoadingQr(false);
-
           if (!event.data || event.data.length === 0) {
-            console.log('Received nil or empty data, closing WebSocket connection.');
-            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-              wsRef.current.close();
-            }
             setDeviceError('End of session or error: No data received. Please try again.');
             return;
           }
-
           console.log('WebSocket received data:', event.data);
-
           if (event.data instanceof Blob) {
             const reader = new FileReader();
-            reader.onload = function (e) {
+            reader.onload = (e) => {
+              wsGotDataRef.current = true;
               setQrImage(e.target.result);
               setDeviceMsg('QR code received successfully!');
             };
-            reader.onerror = function () {
+            reader.onerror = () => {
               setDeviceError('Error reading binary image data.');
               setLoadingQr(false);
             };
             reader.readAsDataURL(event.data);
           } else if (typeof event.data === 'string') {
-            if (event.data.startsWith('data:image/')) {
-              setQrImage(event.data);
-            } else {
-              setQrImage(`data:image/png;base64,${event.data}`);
-            }
+            wsGotDataRef.current = true;
+            setQrImage(event.data);
             setDeviceMsg('QR code received successfully!');
           } else {
             setDeviceError('Received unsupported data type for QR code.');
@@ -210,46 +159,66 @@ export default function Platforms() {
         };
         wsRef.current.onerror = (error) => {
           console.error('WebSocket error:', error);
-          setDeviceError('WebSocket connection failed. Please ensure the backend WebSocket endpoint is running and accessible.');
+          if (!wsGotDataRef.current) setDeviceError('WebSocket connection failed. Please ensure the backend is accessible.');
           setLoadingQr(false);
         };
         wsRef.current.onclose = (event) => {
           console.log('WebSocket closed:', event);
-          if (!event.wasClean && event.code !== 1000) {
+          if (wsGotDataRef.current) {
+            setDeviceConnected(true);
+            setTimeout(() => handleFinishAddPlatform(), 2500);
+          } else if (!event.wasClean && event.code !== 1000) {
             setDeviceError(`WebSocket closed unexpectedly (code: ${event.code}, reason: ${event.reason})`);
           }
           setLoadingQr(false);
         };
       } catch (wsErr) {
-        console.error('WebSocket connection attempt error:', wsErr);
+        console.error('WebSocket connection error:', wsErr);
         setDeviceError('WebSocket connection error. Please check your backend and network.');
         setLoadingQr(false);
       }
     } catch (err) {
       console.error('API call failed:', err);
-      if (err.response?.data?.message) {
-        setDeviceError(err.response.data.message);
-      } else {
-        setDeviceError(err.message || 'Failed to add device');
-      }
+      setDeviceError(err.response?.data?.message || err.message || 'Failed to add device');
       setLoadingQr(false);
     }
   };
 
   const handleFinishAddPlatform = () => {
-    setAddingPlatform(false);
     setAddDeviceDialogOpen(false);
     setSelectedPlatform('');
-    setPendingPlatform('');
     setDeviceMsg('');
     setDeviceError('');
     setQrImage(null);
     setLoadingQr(false);
+    setDeviceConnected(false);
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
     }
     fetchPlatforms();
+  };
+
+  const handleDeleteDevice = async () => {
+    if (!deviceToDelete) return;
+    setDeletingDevice(true);
+    setDeleteError('');
+    try {
+      await axios.delete(`${API_URL}/devices`, {
+        headers: getHeaders(),
+        data: {
+          device_id: deviceToDelete.id,
+          platform: deviceToDelete.rawPlatform || deviceToDelete.platform.toLowerCase()
+        }
+      });
+      setDeleteConfirmOpen(false);
+      setDeviceToDelete(null);
+      fetchPlatforms();
+    } catch (err) {
+      setDeleteError(err.response?.data?.message || err.message || 'Failed to delete device');
+    } finally {
+      setDeletingDevice(false);
+    }
   };
 
   const platformSet = new Set(devices.map((d) => d.platform));
@@ -323,42 +292,60 @@ export default function Platforms() {
             </>
           ) : (
             <Box sx={{ textAlign: 'center', py: 1 }}>
-              {loadingQr && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 3 }}>
-                  <CircularProgress />
+              {deviceConnected ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 4 }}>
+                  <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a' }} />
+                  <Typography variant="h5" fontWeight={700} color="success.main">
+                    Connected successfully!
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Waiting for QR code...
+                    Your {selectedPlatform} device is now linked. Closing…
                   </Typography>
                 </Box>
-              )}
-              {!loadingQr && qrImage && (
+              ) : (
                 <>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Scan this QR code with your {selectedPlatform} app.
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: 'inline-block',
-                      bgcolor: '#fff',
-                      border: '4px solid',
-                      borderColor: 'primary.main',
-                      borderRadius: 2,
-                      p: 2
-                    }}
-                  >
-                    <img src={qrImage} alt="QR Code" style={{ width: 280, height: 280, display: 'block', imageRendering: 'pixelated' }} />
-                  </Box>
+                  {loadingQr && (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 3 }}>
+                      <CircularProgress />
+                      <Typography variant="body2" color="text.secondary">
+                        Waiting for QR code...
+                      </Typography>
+                    </Box>
+                  )}
+                  {!loadingQr && qrImage && (
+                    <>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Scan this QR code with your {selectedPlatform} app.
+                      </Typography>
+                      <Box
+                        sx={{
+                          display: 'inline-block',
+                          bgcolor: '#fff',
+                          border: '4px solid',
+                          borderColor: 'primary.main',
+                          borderRadius: 2,
+                          p: 2
+                        }}
+                      >
+                        {qrImage.startsWith('data:') ? (
+                          <img src={qrImage} alt="QR Code" style={{ width: 280, height: 280, display: 'block' }} />
+                        ) : (
+                          <QRCodeSVG value={qrImage} size={280} />
+                        )}
+                      </Box>
+                    </>
+                  )}
+                  {!loadingQr && !qrImage && deviceMsg && (
+                    <Alert severity="info" sx={{ mt: 1 }}>
+                      {deviceMsg}
+                    </Alert>
+                  )}
+                  {deviceError && (
+                    <Alert severity="error" sx={{ mt: 2 }}>
+                      {deviceError}
+                    </Alert>
+                  )}
                 </>
-              )}
-              {!loadingQr && !qrImage && deviceMsg && (
-                <Alert severity="info" sx={{ mt: 1 }}>
-                  {deviceMsg}
-                </Alert>
-              )}
-              {deviceError && (
-                <Alert severity="error" sx={{ mt: 2 }}>
-                  {deviceError}
-                </Alert>
               )}
             </Box>
           )}
@@ -406,10 +393,29 @@ export default function Platforms() {
                 </Typography>
               ) : (
                 <List>
-                  {devices.map(({ platform, id }) => (
-                    <ListItem key={id} sx={{ pl: 0 }}>
-                      <Avatar sx={{ mr: 2, bgcolor: 'transparent' }}>{platformIcons[platform]}</Avatar>
-                      <ListItemText primary={id} secondary={platform} />
+                  {devices.map((device) => (
+                    <ListItem
+                      key={device.id}
+                      sx={{ pl: 0 }}
+                      secondaryAction={
+                        <Tooltip title="Remove device">
+                          <IconButton
+                            edge="end"
+                            size="small"
+                            color="error"
+                            onClick={() => {
+                              setDeviceToDelete(device);
+                              setDeleteError('');
+                              setDeleteConfirmOpen(true);
+                            }}
+                          >
+                            <DeleteOutlined />
+                          </IconButton>
+                        </Tooltip>
+                      }
+                    >
+                      <Avatar sx={{ mr: 2, bgcolor: 'transparent' }}>{platformIcons[device.platform]}</Avatar>
+                      <ListItemText primary={device.id} secondary={device.platform} />
                     </ListItem>
                   ))}
                 </List>
@@ -418,6 +424,29 @@ export default function Platforms() {
           </Grid>
         </Box>
       </Grid>
+
+      {/* Delete Confirm Dialog */}
+      <Dialog open={deleteConfirmOpen} onClose={() => !deletingDevice && setDeleteConfirmOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Remove Device</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Remove <strong>{deviceToDelete?.id}</strong> ({deviceToDelete?.platform})?
+          </Typography>
+          {deleteError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {deleteError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setDeleteConfirmOpen(false)} color="inherit" disabled={deletingDevice}>
+            Cancel
+          </Button>
+          <Button variant="contained" color="error" onClick={handleDeleteDevice} disabled={deletingDevice}>
+            {deletingDevice ? <CircularProgress size={18} color="inherit" /> : 'Remove'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   );
 }

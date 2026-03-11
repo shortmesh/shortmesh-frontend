@@ -24,7 +24,9 @@ export default function ProfileTab() {
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
     localStorage.removeItem('username');
+    sessionStorage.clear();
     window.location.href = '/login';
   };
 
