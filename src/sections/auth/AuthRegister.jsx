@@ -87,7 +87,7 @@ export default function AuthRegister() {
               email: values.email,
               password: values.password
             });
-            console.log('Register server response:', res.data);
+            // console.log('Register server response:', res.data);
             const token = res.data?.access_token || res.data?.token;
             const isSuccess =
               token &&

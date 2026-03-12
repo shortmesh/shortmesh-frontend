@@ -84,7 +84,7 @@ const OnboardingStepper = () => {
         username,
         access_token
       };
-      console.log('Add device payload:', payload, 'Endpoint:', endpoint);
+      // console.log('Add device payload:', payload, 'Endpoint:', endpoint);
 
       const res = await axios.post(endpoint, payload, {
         headers: {
@@ -93,7 +93,7 @@ const OnboardingStepper = () => {
         }
       });
 
-      console.log('Add device server response:', res.data);
+      // console.log('Add device server response:', res.data);
       setDeviceMsg('Device added successfully! Waiting for QR code...');
 
       if (res.data?.websocket_url) {
@@ -107,11 +107,11 @@ const OnboardingStepper = () => {
           wsRef.current.binaryType = 'blob';
 
           wsRef.current.onopen = () => {
-            console.log('WebSocket connected:', wsUrl);
+            // console.log('WebSocket connected:', wsUrl);
           };
 
           wsRef.current.onmessage = (event) => {
-            console.log('WebSocket message received:', event.data);
+            // console.log('WebSocket message received:', event.data);
             setLoadingQr(false);
 
             if (event.data instanceof Blob) {
@@ -145,7 +145,7 @@ const OnboardingStepper = () => {
           };
 
           wsRef.current.onclose = (event) => {
-            console.log('WebSocket closed', event, `code: ${event.code}`, `reason: ${event.reason}`, `wasClean: ${event.wasClean}`);
+            // console.log('WebSocket closed', event, `code: ${event.code}`, `reason: ${event.reason}`, `wasClean: ${event.wasClean}`);
             if (!event.wasClean && event.code !== 1000) {
               setDeviceError(`WebSocket closed unexpectedly (code: ${event.code}, reason: ${event.reason})`);
             }

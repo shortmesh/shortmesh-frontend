@@ -19,7 +19,6 @@ function ApiTokenChip() {
   useEffect(() => {
     const onStorage = () => setHasToken(!!sessionStorage.getItem('api_token'));
     window.addEventListener('storage', onStorage);
-    // poll every 2s to catch same-tab sessionStorage changes
     const interval = setInterval(() => setHasToken(!!sessionStorage.getItem('api_token')), 2000);
     return () => {
       window.removeEventListener('storage', onStorage);

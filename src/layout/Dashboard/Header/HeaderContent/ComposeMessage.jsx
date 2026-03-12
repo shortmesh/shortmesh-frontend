@@ -60,9 +60,7 @@ export default function ComposeMessage() {
     setDevicesLoading(true);
     try {
       const res = await axios.get(`${API_URL}/devices`, { headers: getApiHeaders() });
-      // API may return array directly, { devices: [...] }, or { data: [...] }
       const raw = Array.isArray(res.data) ? res.data : res.data?.devices || res.data?.data || [];
-      // Normalize to { id, platform } regardless of server field names
       const normalized = raw.map((item) =>
         typeof item === 'string'
           ? { id: item, platform: 'wa' }

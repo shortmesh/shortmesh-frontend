@@ -62,7 +62,7 @@ export default function Posts() {
       setDevicesLoading(true);
       try {
         const res = await axios.get(`${API_URL}/devices`, { headers });
-        console.log('Devices response:', res.data);
+        // console.log('Devices response:', res.data);
         setDevices(res.data?.devices || []);
       } catch (err) {
         console.error('Failed to fetch devices', err);

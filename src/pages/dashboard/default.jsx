@@ -102,16 +102,14 @@ export default function DashboardDefault() {
 
     try {
       const response = await axios.get(`${API_URL}/devices`, { headers });
-      console.log('GET /devices response:', response.data);
+      // console.log('GET /devices response:', response.data);
 
-      // Handle: array directly, { devices: [...] }, or { data: [...] }
       const rawList = Array.isArray(response.data) ? response.data : response.data?.devices || response.data?.data || [];
 
       const allDevices = rawList.map((item) => {
         if (typeof item === 'string') {
           return { platform: 'Unknown', id: item };
         }
-        // item is an object — extract id and platform
         const id = item.id || item.device_id || item.name || JSON.stringify(item);
         const rawPlatform = item.platform || item.type || '';
         const platform = platformMap[rawPlatform] || rawPlatform || 'Unknown';
@@ -181,7 +179,7 @@ export default function DashboardDefault() {
   };
 
   const handlePlatformSelect = async (name) => {
-    console.log('handlePlatformSelect called with:', name);
+    // console.log('handlePlatformSelect called with:', name);
     setSelectedPlatform(name);
     setPendingPlatform(name);
     setDeviceMsg('');
@@ -194,7 +192,7 @@ export default function DashboardDefault() {
       if (platformKey === 'whatsapp') platformKey = 'wa';
       const endpoint = `${API_URL}/devices`;
       const payload = { platform: platformKey };
-      console.log('Creating device with payload:', payload);
+      // console.log('Creating device with payload:', payload);
       const apiToken = sessionStorage.getItem('api_token');
       const res = await axios.post(endpoint, payload, {
         headers: {
@@ -203,7 +201,7 @@ export default function DashboardDefault() {
           Authorization: `Bearer ${apiToken}`
         }
       });
-      console.log('POST /devices response:', res.data);
+      // console.log('POST /devices response:', res.data);
       setDeviceMsg('Waiting for QR code...');
       const rawWsUrl = res.data?.websocket_url || res.data?.qr_code_url || res.data?.ws_url || res.data?.socket_url;
       if (!rawWsUrl) {
@@ -219,12 +217,11 @@ export default function DashboardDefault() {
         const wsOrigin = apiOrigin.replace(/^https/, 'wss').replace(/^http/, 'ws');
         wsUrl = `${wsOrigin}${rawWsUrl}`;
       }
-      // Only append token if the URL doesn't already carry one
       const wsApiToken = sessionStorage.getItem('api_token');
       if (!wsUrl.includes('token=')) {
         wsUrl = `${wsUrl}${wsUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(wsApiToken)}`;
       }
-      console.log('Connecting to WebSocket in 3s:', wsUrl);
+      // console.log('Connecting to WebSocket in 3s:', wsUrl);
       setDeviceMsg('Preparing connection...');
       await new Promise((resolve) => setTimeout(resolve, 6000));
       try {
@@ -232,13 +229,13 @@ export default function DashboardDefault() {
         wsRef.current = new window.WebSocket(wsUrl);
         wsRef.current.binaryType = 'blob';
         wsRef.current.onopen = () => {
-          console.log('WebSocket connected successfully to:', wsUrl);
+          // console.log('WebSocket connected successfully to:', wsUrl);
         };
         wsRef.current.onmessage = (event) => {
           setLoadingQr(false);
 
           if (!event.data || event.data.length === 0) {
-            console.log('Received nil or empty data, closing WebSocket connection.');
+            // console.log('Received nil or empty data, closing WebSocket connection.');
             if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
               wsRef.current.close();
             }
@@ -246,7 +243,7 @@ export default function DashboardDefault() {
             return;
           }
 
-          console.log('WebSocket received data:', event.data);
+          // console.log('WebSocket received data:', event.data);
 
           if (event.data instanceof Blob) {
             const reader = new FileReader();
@@ -261,7 +258,6 @@ export default function DashboardDefault() {
             };
             reader.readAsDataURL(event.data);
           } else if (typeof event.data === 'string') {
-            // Store raw QR string — could be a data URL or a WhatsApp-style QR string (e.g. '2@...')
             wsGotDataRef.current = true;
             setQrImage(event.data);
             setDeviceMsg('QR code received successfully!');
@@ -278,7 +274,7 @@ export default function DashboardDefault() {
           setLoadingQr(false);
         };
         wsRef.current.onclose = (event) => {
-          console.log('WebSocket closed:', event);
+          // console.log('WebSocket closed:', event);
           if (wsGotDataRef.current) {
             setDeviceConnected(true);
             setTimeout(() => handleFinishAddPlatform(), 2500);
@@ -393,7 +389,6 @@ export default function DashboardDefault() {
         headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }
       });
       const newToken = res.data?.token || res.data;
-      // Save to sessionStorage so device calls work immediately
       sessionStorage.setItem('api_token', newToken);
       setTokenPromptOpen(false);
       setSuccessAlert({ token: newToken });
@@ -604,7 +599,7 @@ export default function DashboardDefault() {
                       key={p}
                       component="button"
                       onClick={() => {
-                        console.log('Platform card clicked:', p);
+                        // console.log('Platform card clicked:', p);
                         handlePlatformSelect(p);
                       }}
                       sx={{

@@ -61,7 +61,7 @@ export default function Platforms() {
     const platformMap = { wa: 'WhatsApp' };
     try {
       const response = await axios.get(`${API_URL}/devices`, { headers: getHeaders() });
-      console.log('GET /devices response:', response.data);
+      // console.log('GET /devices response:', response.data);
       const rawList = Array.isArray(response.data) ? response.data : response.data?.devices || response.data?.data || [];
       const allDevices = rawList.map((item) => {
         if (typeof item === 'string') return { platform: 'Unknown', id: item, rawPlatform: '' };
@@ -105,7 +105,7 @@ export default function Platforms() {
       let platformKey = name.toLowerCase();
       if (platformKey === 'whatsapp') platformKey = 'wa';
       const res = await axios.post(`${API_URL}/devices`, { platform: platformKey }, { headers: getHeaders() });
-      console.log('POST /devices response:', res.data);
+      // console.log('POST /devices response:', res.data);
       setDeviceMsg('Waiting for QR code...');
       const rawWsUrl = res.data?.websocket_url || res.data?.qr_code_url || res.data?.ws_url || res.data?.socket_url;
       if (!rawWsUrl) {
@@ -123,19 +123,21 @@ export default function Platforms() {
       if (!wsUrl.includes('token=')) {
         wsUrl = `${wsUrl}${wsUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(wsApiToken)}`;
       }
-      console.log('Connecting to WebSocket:', wsUrl);
+      // console.log('Connecting to WebSocket:', wsUrl);
       try {
         wsGotDataRef.current = false;
         wsRef.current = new window.WebSocket(wsUrl);
         wsRef.current.binaryType = 'blob';
-        wsRef.current.onopen = () => console.log('WebSocket connected:', wsUrl);
+        wsRef.current.onopen = () => {
+          // console.log('WebSocket connected:', wsUrl);
+        };
         wsRef.current.onmessage = (event) => {
           setLoadingQr(false);
           if (!event.data || event.data.length === 0) {
             setDeviceError('End of session or error: No data received. Please try again.');
             return;
           }
-          console.log('WebSocket received data:', event.data);
+          // console.log('WebSocket received data:', event.data);
           if (event.data instanceof Blob) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -163,7 +165,7 @@ export default function Platforms() {
           setLoadingQr(false);
         };
         wsRef.current.onclose = (event) => {
-          console.log('WebSocket closed:', event);
+          // console.log('WebSocket closed:', event);
           if (wsGotDataRef.current) {
             setDeviceConnected(true);
             setTimeout(() => handleFinishAddPlatform(), 2500);
@@ -256,7 +258,7 @@ export default function Platforms() {
                     key={p}
                     component="button"
                     onClick={() => {
-                      console.log('Platform card clicked:', p);
+                      // console.log('Platform card clicked:', p);
                       handlePlatformSelect(p);
                     }}
                     sx={{

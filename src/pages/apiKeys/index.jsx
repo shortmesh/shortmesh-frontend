@@ -55,7 +55,6 @@ export default function ApiKeys() {
       const body = expiresAt ? { expires_at: new Date(expiresAt).toISOString() } : {};
       const res = await axios.post(`${API_URL}/tokens`, body, { headers: authHeaders() });
       const newToken = res.data?.token || res.data;
-      // Auto-save to sessionStorage so device calls work immediately
       sessionStorage.setItem('api_token', newToken);
       setSessionSaved(true);
       setSuccessAlert({ token: newToken });
