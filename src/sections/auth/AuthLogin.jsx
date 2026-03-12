@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 
 // material-ui
 import Button from '@mui/material/Button';
@@ -8,7 +7,6 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormHelperText from '@mui/material/FormHelperText';
 import Grid from '@mui/material/Grid2';
-import Link from '@mui/material/Link';
 import InputAdornment from '@mui/material/InputAdornment';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
@@ -72,17 +70,17 @@ export default function AuthLogin({ isDemo = false }) {
               email: values.email,
               password: values.password
             });
-            console.log('Login server response:', res.data);
-            if (res.data?.access_token && res.data?.status === 'logged in') {
+            // console.log('Login server response:', res.data);
+            const token = res.data?.access_token || res.data?.token;
+            if (token) {
               localStorage.setItem('isAuthenticated', 'true');
-              localStorage.setItem('token', res.data.access_token);
-              localStorage.setItem('email', values.email); // Save email
+              localStorage.setItem('token', token);
+              localStorage.setItem('email', values.email);
               setSuccessMsg('Login successful! Redirecting...');
               setTimeout(() => {
                 navigate('/dashboard');
               }, 1000);
             } else {
-              // Improved error message
               const errMsg =
                 [res.data?.error, res.data?.details, res.data?.message].filter(Boolean).join(' - ') ||
                 'Login failed: Unexpected server response';
@@ -90,7 +88,6 @@ export default function AuthLogin({ isDemo = false }) {
               console.error('Login failed: Unexpected server response', res.data);
             }
           } catch (err) {
-            // Improved error message
             const data = err.response?.data;
             const errMsg = [data?.error, data?.details, data?.message, err.message].filter(Boolean).join(' - ') || 'Login failed';
             setApiError(errMsg);

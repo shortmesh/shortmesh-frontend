@@ -7,7 +7,7 @@ const RequireAuth = ({ children }) => {
   const token = localStorage.getItem('token');
   const location = useLocation();
 
-  console.log('RequireAuth: isAuthenticated =', isAuthenticated, 'token =', token);
+  // console.log('RequireAuth: isAuthenticated =', isAuthenticated, 'token =', token);
 
   if (!isAuthenticated || !token) {
     return <Navigate to="/login" state={{ from: location }} replace />;

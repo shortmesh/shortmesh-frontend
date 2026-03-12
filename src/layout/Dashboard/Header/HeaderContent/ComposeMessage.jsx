@@ -50,18 +50,23 @@ export default function ComposeMessage() {
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
 
-  const token = localStorage.getItem('token');
-  const headers = {
+  const getApiHeaders = () => ({
     accept: 'application/json',
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`
-  };
+    Authorization: `Bearer ${sessionStorage.getItem('api_token') || ''}`
+  });
 
   const fetchDevices = async () => {
     setDevicesLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/devices`, { headers });
-      setDevices(res.data?.devices || []);
+      const res = await axios.get(`${API_URL}/devices`, { headers: getApiHeaders() });
+      const raw = Array.isArray(res.data) ? res.data : res.data?.devices || res.data?.data || [];
+      const normalized = raw.map((item) =>
+        typeof item === 'string'
+          ? { id: item, platform: 'wa' }
+          : { id: item.id || item.device_id || item.name || JSON.stringify(item), platform: item.platform || item.type || 'wa' }
+      );
+      setDevices(normalized);
     } catch (err) {
       console.error('Failed to fetch devices', err);
     } finally {
@@ -95,9 +100,9 @@ export default function ComposeMessage() {
     setSending(true);
     try {
       await axios.post(
-        `${API_URL}/${selectedDevice}/message`,
+        `${API_URL}/devices/${selectedDevice}/message`,
         { contact: rawContact, platform: selected?.platform || 'wa', text: messageText.trim() },
-        { headers }
+        { headers: getApiHeaders() }
       );
       setSent(true);
       setTimeout(handleClose, 2000);

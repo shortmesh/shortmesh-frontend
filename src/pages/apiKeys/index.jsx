@@ -1,155 +1,82 @@
+import { useState } from 'react';
+
 // material-ui
 import Grid from '@mui/material/Grid2';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import TextField from '@mui/material/TextField';
 import Alert from '@mui/material/Alert';
+import Divider from '@mui/material/Divider';
+import Chip from '@mui/material/Chip';
 import MainCard from 'components/MainCard';
-import { useState, useEffect } from 'react';
-import {
-  CopyOutlined,
-  CheckOutlined,
-  EyeOutlined,
-  EyeInvisibleOutlined,
-  KeyOutlined,
-  PlusOutlined,
-  DeleteOutlined
-} from '@ant-design/icons';
+import { CopyOutlined, CheckOutlined, KeyOutlined, PlusOutlined, SendOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
 
-function maskKey(key) {
-  if (!key || key.length < 8) return '********';
-  return key.slice(0, 4) + '************' + key.slice(-4);
-}
-
-function formatDate(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-}
-
-function isExpired(expires_at) {
-  if (!expires_at) return false;
-  return new Date(expires_at) < new Date();
-}
-
-const COLUMNS = ['Name', 'Key ID', 'Created', 'Last Used', 'Expires', 'Status', ''];
-
 export default function ApiKeys() {
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [copiedKey, setCopiedKey] = useState('');
-  const [revealedKeys, setRevealedKeys] = useState({});
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newKeyName, setNewKeyName] = useState('');
+  const [expiresAt, setExpiresAt] = useState('');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
-  const [successAlert, setSuccessAlert] = useState(null); // { message, key }
-  const [deletingKey, setDeletingKey] = useState(null);
-  const [deleteAlert, setDeleteAlert] = useState(null); // { severity, message }
+  const [successAlert, setSuccessAlert] = useState(null); // { token }
+  const [sessionSaved, setSessionSaved] = useState(false);
 
-  useEffect(() => {
-    const fetchKeys = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`${API_URL}/api-keys`, {
-          headers: { Authorization: `Bearer ${token}`, accept: 'application/json' }
-        });
-        console.log('API keys response:', res.data);
-        setRows(res.data || []);
-      } catch (err) {
-        setError('Failed to load API keys.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchKeys();
-  }, []);
+  const hasSessionToken = Boolean(sessionStorage.getItem('api_token'));
 
-  const handleCopy = (key) => {
-    navigator.clipboard.writeText(key);
-    setCopiedKey(key);
+  const authHeaders = () => {
+    const token = localStorage.getItem('token');
+    return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', accept: 'application/json' };
+  };
+
+  const handleCopy = (val) => {
+    navigator.clipboard.writeText(val);
+    setCopiedKey(val);
     setTimeout(() => setCopiedKey(''), 1500);
   };
 
-  const toggleReveal = (keyId) => {
-    setRevealedKeys((prev) => ({ ...prev, [keyId]: !prev[keyId] }));
+  const handleSaveToSession = (token) => {
+    sessionStorage.setItem('api_token', token);
+    setSessionSaved(true);
   };
 
-  const handleCreateKey = async () => {
-    if (!newKeyName.trim()) return;
+  const handleCreateToken = async () => {
     setCreating(true);
     setCreateError('');
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post(
-        `${API_URL}/api-keys`,
-        { name: newKeyName.trim() },
-        { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
-      );
-      const { data, key, message } = res.data;
-      setRows((prev) => [...prev, data]);
-      setSuccessAlert({ message: message || 'API key created successfully.', key });
+      const body = expiresAt ? { expires_at: new Date(expiresAt).toISOString() } : {};
+      const res = await axios.post(`${API_URL}/tokens`, body, { headers: authHeaders() });
+      const newToken = res.data?.token || res.data;
+      sessionStorage.setItem('api_token', newToken);
+      setSessionSaved(true);
+      setSuccessAlert({ token: newToken });
       setDialogOpen(false);
-      setNewKeyName('');
+      setExpiresAt('');
     } catch (err) {
-      setCreateError(err?.response?.data?.detail || 'Failed to create API key.');
+      setCreateError(err?.response?.data?.detail || err?.response?.data?.message || 'Failed to create token.');
     } finally {
       setCreating(false);
     }
   };
 
-  const handleDeleteKey = async (keyId, keyName) => {
-    setDeletingKey(keyId);
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${API_URL}/api-keys`, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        data: { key_id: keyId }
-      });
-      setRows((prev) => prev.filter((r) => r.key_id !== keyId));
-      setDeleteAlert({ severity: 'success', message: `API key "${keyName}" deleted successfully.` });
-    } catch (err) {
-      console.error('Failed to delete API key:', err);
-      const msg = err?.response?.data?.detail || err?.response?.data?.message || 'Failed to delete API key.';
-      setDeleteAlert({ severity: 'error', message: msg });
-    } finally {
-      setDeletingKey(null);
-    }
-  };
-
-  const thSx = { fontWeight: 600, color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' };
-
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
+      {/* Header */}
       <Grid size={12}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
-            <Typography variant="h5">API Keys</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              API keys are used to authenticate requests to the ShortMesh API.
-            </Typography>
+            <Typography variant="h5">Tokens</Typography>
+            {/* <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              Tokens authenticate device API calls. Each token is shown once on creation — save it immediately.
+            </Typography> */}
           </Box>
           <Button
             variant="contained"
@@ -158,58 +85,76 @@ export default function ApiKeys() {
             onClick={() => {
               setDialogOpen(true);
               setCreateError('');
-              setNewKeyName('');
+              setExpiresAt('');
             }}
             sx={{ mt: 0.5 }}
           >
-            Add API Key
+            New Token
           </Button>
         </Box>
       </Grid>
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>Create New API Key</DialogTitle>
-        <DialogContent sx={{ pt: '12px !important' }}>
+      {/* Create dialog */}
+      <Dialog
+        open={dialogOpen}
+        onClose={() => !creating && setDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 4 } }}
+      >
+        <Box sx={{ px: 3, pt: 3, pb: 2 }}>
+          <Typography variant="h5" fontWeight={700}>
+            Create Token
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Set an optional expiry date. Defaults to 6 months if left blank.
+          </Typography>
+        </Box>
+        <Divider />
+        <DialogContent sx={{ pt: 2.5 }}>
           <TextField
-            label="Key Name"
-            placeholder="e.g. Production API Key"
-            value={newKeyName}
-            onChange={(e) => setNewKeyName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleCreateKey()}
+            label="Expires at (optional)"
+            type="datetime-local"
             fullWidth
-            autoFocus
             size="small"
-            error={!!createError}
-            helperText={createError || ' '}
+            value={expiresAt}
+            onChange={(e) => setExpiresAt(e.target.value)}
+            slotProps={{ inputLabel: { shrink: true } }}
+            helperText="Leave blank to use the default 6-month expiry."
           />
+          {createError && (
+            <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
+              {createError}
+            </Alert>
+          )}
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setDialogOpen(false)} color="inherit" size="small">
+        <Divider />
+        <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
+          <Button onClick={() => setDialogOpen(false)} disabled={creating} sx={{ borderRadius: 2 }}>
             Cancel
           </Button>
-          <Button onClick={handleCreateKey} variant="contained" size="small" disabled={creating || !newKeyName.trim()}>
-            {creating ? <CircularProgress size={14} sx={{ mr: 1 }} /> : null}
-            Create
+          <Button
+            onClick={handleCreateToken}
+            variant="contained"
+            disabled={creating}
+            endIcon={creating ? <CircularProgress size={14} color="inherit" /> : <SendOutlined />}
+            sx={{ borderRadius: 2, minWidth: 110 }}
+          >
+            {creating ? 'Creating\u2026' : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {deleteAlert && (
-        <Grid size={12}>
-          <Alert severity={deleteAlert.severity} onClose={() => setDeleteAlert(null)}>
-            {deleteAlert.message}
-          </Alert>
-        </Grid>
-      )}
+      {/* Success alert */}
       {successAlert && (
         <Grid size={12}>
           <Alert severity="success" onClose={() => setSuccessAlert(null)} sx={{ alignItems: 'flex-start' }}>
             <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
-              {successAlert.message}
+              Token created copy it now, it will not be shown again.
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.75, display: 'block' }}>
-              Copy and store this key now — it will not be shown again.
-            </Typography>
+            {sessionSaved && (
+              <Chip label="Saved to session storage" size="small" color="success" sx={{ mb: 1, fontWeight: 600, fontSize: '0.7rem' }} />
+            )}
             <Box
               sx={{
                 display: 'flex',
@@ -219,167 +164,140 @@ export default function ApiKeys() {
                 borderRadius: 1,
                 px: 1.5,
                 py: 0.75,
-                width: 'fit-content'
+                mt: 0.5,
+                width: 'fit-content',
+                maxWidth: '100%',
+                flexWrap: 'wrap'
               }}
             >
-              <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                {successAlert.key}
+              <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all', flexGrow: 1 }}>
+                {successAlert.token}
               </Typography>
-              <Tooltip title={copiedKey === successAlert.key ? 'Copied!' : 'Copy'} placement="top">
-                <IconButton
-                  size="small"
-                  onClick={() => handleCopy(successAlert.key)}
-                  sx={{ color: copiedKey === successAlert.key ? 'success.main' : 'text.secondary', flexShrink: 0 }}
-                >
-                  {copiedKey === successAlert.key ? <CheckOutlined style={{ fontSize: 13 }} /> : <CopyOutlined style={{ fontSize: 13 }} />}
-                </IconButton>
-              </Tooltip>
+              <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
+                <Tooltip title={copiedKey === successAlert.token ? 'Copied!' : 'Copy token'} placement="top">
+                  <IconButton
+                    size="small"
+                    onClick={() => handleCopy(successAlert.token)}
+                    sx={{ color: copiedKey === successAlert.token ? 'success.main' : 'text.secondary' }}
+                  >
+                    {copiedKey === successAlert.token ? (
+                      <CheckOutlined style={{ fontSize: 13 }} />
+                    ) : (
+                      <CopyOutlined style={{ fontSize: 13 }} />
+                    )}
+                  </IconButton>
+                </Tooltip>
+                {!sessionSaved && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="success"
+                    onClick={() => handleSaveToSession(successAlert.token)}
+                    sx={{ fontSize: '0.7rem', py: 0.25, px: 1, borderRadius: 1, minWidth: 0 }}
+                  >
+                    Create token
+                  </Button>
+                )}
+              </Box>
             </Box>
           </Alert>
         </Grid>
       )}
+
+      {/* Info card */}
       <Grid size={12}>
-        <MainCard borderRadius={4} sx={{ p: 0, width: '100%' }}>
-          {loading ? (
-            <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
-              <CircularProgress size={28} />
-            </Box>
-          ) : error ? (
-            <Box sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
-              <Typography color="error" variant="body2">
-                {error}
-              </Typography>
-            </Box>
-          ) : rows.length === 0 ? (
-            <Box sx={{ py: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
-              <Box sx={{ fontSize: '2.5rem', color: 'text.disabled' }}>
-                <KeyOutlined />
+        <MainCard borderRadius={4}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            {/* Session status */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <KeyOutlined style={{ fontSize: 22, color: hasSessionToken ? '#52c41a' : '#faad14' }} />
+                <Box>
+                  <Typography variant="body1" fontWeight={600}>
+                    {hasSessionToken ? 'API token active' : 'No API token'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {hasSessionToken
+                      ? 'Device calls are authenticated. Token is cleared when you close the browser tab.'
+                      : 'Create a token or paste an existing one to enable device calls.'}
+                  </Typography>
+                </Box>
               </Box>
-              <Typography variant="body1" color="text.secondary">
-                No API keys have been added yet.
+              <Chip
+                label={hasSessionToken ? 'Active' : 'Not set'}
+                size="small"
+                sx={{
+                  bgcolor: hasSessionToken ? 'success.lighter' : 'warning.lighter',
+                  color: hasSessionToken ? 'success.dark' : 'warning.dark',
+                  fontWeight: 700,
+                  fontSize: '0.72rem'
+                }}
+              />
+            </Box>
+
+            <Divider />
+
+            {/* How it works */}
+            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+              <InfoCircleOutlined style={{ fontSize: 16, color: '#8c8c8c', marginTop: 2 }} />
+              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
+                Tokens are <strong>view-once</strong> they cannot be retrieved after creation. Create a new token, copy it immediately, and
+                keep it safe. The token is stored in <code>sessionStorage</code> for this browser session only. You&apos;ll be prompted to
+                enter it again after closing the tab.
               </Typography>
             </Box>
-          ) : (
-            <TableContainer sx={{ width: '100%' }}>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: 'grey.50' }}>
-                    {COLUMNS.map((col, i) => (
-                      <TableCell key={i} align={i === COLUMNS.length - 1 ? 'right' : 'left'} sx={thSx}>
-                        {col}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row) => {
-                    const expired = isExpired(row.expires_at);
-                    const revealed = !!revealedKeys[row.key_id];
-                    return (
-                      <TableRow
-                        key={row.key_id}
-                        sx={{ '&:last-child td': { border: 0 }, '&:hover': { bgcolor: 'grey.50' }, transition: 'background 0.15s' }}
-                      >
-                        <TableCell>
-                          <Typography variant="body2" fontWeight={500}>
-                            {row.name}
-                          </Typography>
-                        </TableCell>
 
-                        <TableCell>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 0.75,
-                              bgcolor: 'grey.100',
-                              px: 1,
-                              py: revealed ? 0.5 : 0,
-                              borderRadius: 1
-                            }}
-                          >
-                            <Typography variant="body2" sx={{ fontFamily: 'monospace', color: 'text.secondary', letterSpacing: '0.04em' }}>
-                              {revealed ? row.key_id : maskKey(row.key_id)}
-                            </Typography>
-                            <Tooltip title={copiedKey === row.key_id ? 'Copied!' : 'Copy'} placement="top">
-                              <IconButton
-                                size="small"
-                                onClick={() => handleCopy(row.key_id)}
-                                sx={{ color: copiedKey === row.key_id ? 'success.main' : 'text.secondary' }}
-                              >
-                                {copiedKey === row.key_id ? (
-                                  <CheckOutlined style={{ fontSize: 12 }} />
-                                ) : (
-                                  <CopyOutlined style={{ fontSize: 12 }} />
-                                )}
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        </TableCell>
-
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">
-                            {formatDate(row.created_at)}
-                          </Typography>
-                        </TableCell>
-
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">
-                            {formatDate(row.last_used_at)}
-                          </Typography>
-                        </TableCell>
-
-                        <TableCell>
-                          <Typography variant="body2" color={expired ? 'error.main' : 'text.secondary'}>
-                            {formatDate(row.expires_at)}
-                          </Typography>
-                        </TableCell>
-
-                        <TableCell>
-                          <Chip
-                            label={expired ? 'Expired' : 'Active'}
-                            size="small"
-                            sx={{
-                              bgcolor: expired ? 'error.lighter' : 'success.lighter',
-                              color: expired ? 'error.dark' : 'success.dark',
-                              fontWeight: 600,
-                              fontSize: '0.7rem',
-                              height: 22,
-                              borderRadius: '6px'
-                            }}
-                          />
-                        </TableCell>
-
-                        <TableCell align="right">
-                          <Tooltip title={revealed ? 'Hide key' : 'Reveal key'} placement="top">
-                            <IconButton size="small" onClick={() => toggleReveal(row.key_id)} sx={{ color: 'text.secondary' }}>
-                              {revealed ? <EyeInvisibleOutlined style={{ fontSize: 15 }} /> : <EyeOutlined style={{ fontSize: 15 }} />}
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete key" placement="top">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDeleteKey(row.key_id, row.name)}
-                              disabled={deletingKey === row.key_id}
-                              sx={{ color: 'error.main', ml: 0.5 }}
-                            >
-                              {deletingKey === row.key_id ? (
-                                <CircularProgress size={12} color="error" />
-                              ) : (
-                                <DeleteOutlined style={{ fontSize: 15 }} />
-                              )}
-                            </IconButton>
-                          </Tooltip>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
+            {!hasSessionToken && (
+              <>
+                <Divider />
+                <Box>
+                  <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
+                    Already have a token? Paste it here:
+                  </Typography>
+                  <PasteTokenField onSave={() => window.location.reload()} />
+                </Box>
+              </>
+            )}
+          </Box>
         </MainCard>
       </Grid>
     </Grid>
+  );
+}
+
+function PasteTokenField({ onSave }) {
+  const [val, setVal] = useState('');
+  const [saved, setSaved] = useState(false);
+
+  const save = () => {
+    if (!val.trim()) return;
+    sessionStorage.setItem('api_token', val.trim());
+    setSaved(true);
+    setTimeout(() => onSave(), 800);
+  };
+
+  return (
+    <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+      <TextField
+        size="small"
+        placeholder="sk_..."
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        fullWidth
+        onKeyDown={(e) => e.key === 'Enter' && save()}
+        disabled={saved}
+        slotProps={{ input: { style: { fontFamily: 'monospace' } } }}
+      />
+      <Button
+        variant="contained"
+        size="small"
+        onClick={save}
+        disabled={!val.trim() || saved}
+        sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+        endIcon={saved ? <CheckOutlined /> : null}
+      >
+        {saved ? 'Saved!' : 'Save to session'}
+      </Button>
+    </Box>
   );
 }

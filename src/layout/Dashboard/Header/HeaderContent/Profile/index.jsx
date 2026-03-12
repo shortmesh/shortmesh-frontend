@@ -38,7 +38,9 @@ export default function Profile() {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('token');
     localStorage.removeItem('username');
+    localStorage.removeItem('access_token');
     localStorage.removeItem('email');
+    sessionStorage.clear();
     window.location.href = '/login';
   };
 
