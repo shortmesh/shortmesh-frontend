@@ -934,9 +934,9 @@ export default function DashboardDefault() {
                       ) : null
                     }
                   >
-                    <Avatar sx={{ mr: 2, bgcolor: 'primary.lighter', width: 36, height: 36 }} variant="rounded">
+                    {/* <Avatar sx={{ mr: 2, bgcolor: 'primary.lighter', width: 36, height: 36 }} variant="rounded">
                       {SERVICE_ICONS[svc.name] ?? <AppstoreOutlined style={{ fontSize: 20 }} />}
-                    </Avatar>
+                    </Avatar> */}
                     <ListItemText
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

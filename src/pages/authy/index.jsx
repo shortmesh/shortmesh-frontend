@@ -716,64 +716,29 @@ function SelfHostTab() {
 
 // ==============================|| CREDENTIALS DIALOG ||============================== //
 
-function CopyField({ label, value }) {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = () => {
-    navigator.clipboard.writeText(value).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
+function CredentialsDialog({ open, onClose }) {
   return (
-    <Box>
-      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-        {label}
-      </Typography>
-      <Stack direction="row" alignItems="center" spacing={1}>
-        <Paper variant="outlined" sx={{ flex: 1, px: 1.5, py: 0.75, bgcolor: 'grey.50', borderRadius: 1.5, overflow: 'hidden' }}>
-          <Typography component="code" sx={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'text.primary', wordBreak: 'break-all' }}>
-            {value}
-          </Typography>
-        </Paper>
-        <Tooltip title={copied ? 'Copied!' : 'Copy'}>
-          <IconButton size="small" onClick={handleCopy} sx={{ color: copied ? 'success.main' : 'text.secondary' }}>
-            {copied ? <CheckCircleOutlined style={{ fontSize: 15 }} /> : <CopyOutlined style={{ fontSize: 15 }} />}
-          </IconButton>
-        </Tooltip>
-      </Stack>
-    </Box>
-  );
-}
-
-function CredentialsDialog({ open, onClose, credentials }) {
-  if (!credentials) return null;
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
-      <DialogTitle sx={{ pb: 0 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Stack direction="row" alignItems="center" spacing={1.25}>
-            <KeyOutlined style={{ fontSize: 18, color: '#1890ff' }} />
-            <Typography variant="h6" fontWeight={700}>
-              Authy Credentials
-            </Typography>
-          </Stack>
-          <IconButton size="small" onClick={onClose}>
-            <CloseOutlined />
-          </IconButton>
-        </Stack>
-      </DialogTitle>
-      <DialogContent sx={{ pt: 2 }}>
-        <Alert severity="warning" sx={{ mb: 2.5, borderRadius: 1.5 }}>
-          Save these credentials now — the <strong>client secret</strong> will not be shown again.
-        </Alert>
-        <Stack spacing={2}>
-          <CopyField label="Client ID" value={credentials.client_id} />
-          <CopyField label="Client Secret" value={credentials.client_secret} />
-        </Stack>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-          Use these when configuring your Authy API instance or integrating with the ShortMesh widget.
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+      <DialogContent sx={{ p: 4, textAlign: 'center' }}>
+        <Box
+          sx={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            bgcolor: 'success.lighter',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mx: 'auto',
+            mb: 2
+          }}
+        >
+          <CheckCircleOutlined style={{ fontSize: 30, color: '#52c41a' }} />
+        </Box>
+        <Typography variant="h6" fontWeight={700} gutterBottom>
+          Subscribed!
         </Typography>
-        <Button variant="contained" fullWidth onClick={onClose} sx={{ mt: 3, borderRadius: 2 }}>
+        <Button variant="contained" onClick={onClose} sx={{ mt: 3, borderRadius: 2, px: 4 }}>
           Done
         </Button>
       </DialogContent>
@@ -932,7 +897,7 @@ export default function Authy() {
             }}
           >
             <Stack direction="row" alignItems="center" spacing={1.25}>
-              <SafetyCertificateOutlined style={{ fontSize: 18, color: '#1890ff' }} />
+              {/* <SafetyCertificateOutlined style={{ fontSize: 18, color: '#1890ff' }} /> */}
               <Typography variant="subtitle1" fontWeight={700}>
                 {subInfo.display_name || 'Authy OTP Service'}
               </Typography>
@@ -1121,7 +1086,7 @@ export default function Authy() {
       {renderSubscriptionSection()}
 
       {/* ── Integration Guide ── */}
-      <Box>
+      {/* <Box>
         <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>
           Integration Guide
         </Typography>
@@ -1165,11 +1130,11 @@ export default function Authy() {
             </>
           )}
         </Box>
-      </Box>
+      </Box> */}
 
       {/* ── Footer links ── */}
       <Divider sx={{ my: 4 }} />
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
+      {/* <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
         <Typography variant="body2" color="text.secondary" sx={{ mr: 'auto' }}>
           Open source — contributions welcome.
         </Typography>
@@ -1190,9 +1155,9 @@ export default function Authy() {
             {label} ↗
           </Button>
         ))}
-      </Stack>
+      </Stack> */}
 
-      <CredentialsDialog open={credDialogOpen} onClose={() => setCredDialogOpen(false)} credentials={credentials} />
+      <CredentialsDialog open={credDialogOpen} onClose={() => setCredDialogOpen(false)} />
     </>
   );
 }
