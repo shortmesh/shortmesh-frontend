@@ -5,7 +5,7 @@ const API_URL = import.meta.env.VITE_APP_API_URL;
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function authHeaders() {
-  const token = sessionStorage.getItem('api_token');
+  const token = (localStorage.getItem('token') || '').trim();
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', accept: 'application/json' };
 }
 
@@ -30,5 +30,13 @@ export async function getServiceStatus(serviceName) {
 // Returns { service_name, client_id, client_secret, message }
 export async function subscribeToService(serviceName) {
   const res = await axios.post(`${API_URL}/services/${serviceName}/subscribe`, {}, { headers: authHeaders() });
+  return res.data;
+}
+
+// ─── GET /api/v1/services/subscriptions ─────────────────────────────────────
+// Get all services the authenticated user has subscribed to, including status.
+// [{ name, display_name, description, client_id, client_secret, is_enabled, is_expired, created_at, expires_at }]
+export async function getUserSubscriptions() {
+  const res = await axios.get(`${API_URL}/services/subscriptions`, { headers: authHeaders() });
   return res.data;
 }

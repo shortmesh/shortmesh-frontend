@@ -28,7 +28,6 @@ import {
   CloseOutlined,
   CodeOutlined,
   CopyOutlined,
-  ExclamationCircleOutlined,
   GlobalOutlined,
   KeyOutlined,
   LockOutlined,
@@ -38,7 +37,7 @@ import {
 } from '@ant-design/icons';
 
 // api
-import { getServiceStatus, subscribeToService } from '../../api/services';
+import { subscribeToService, getUserSubscriptions } from '../../api/services';
 
 // ==============================|| SYNTAX TOKENIZER ||============================== //
 
@@ -731,14 +730,8 @@ function CopyField({ label, value }) {
         {label}
       </Typography>
       <Stack direction="row" alignItems="center" spacing={1}>
-        <Paper
-          variant="outlined"
-          sx={{ flex: 1, px: 1.5, py: 0.75, bgcolor: 'grey.50', borderRadius: 1.5, overflow: 'hidden' }}
-        >
-          <Typography
-            component="code"
-            sx={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'text.primary', wordBreak: 'break-all' }}
-          >
+        <Paper variant="outlined" sx={{ flex: 1, px: 1.5, py: 0.75, bgcolor: 'grey.50', borderRadius: 1.5, overflow: 'hidden' }}>
+          <Typography component="code" sx={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'text.primary', wordBreak: 'break-all' }}>
             {value}
           </Typography>
         </Paper>
@@ -844,30 +837,40 @@ function WidgetPreview() {
 // ==============================|| MAIN PAGE ||============================== //
 
 export default function Authy() {
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [docTab, setDocTab] = useState(0);
 
   // ── subscription state ───────────────────────────────────────────────────
-  const [subStatus, setSubStatus] = useState(null);   // { is_subscribed, is_enabled, is_expired, display_name }
+  // subInfo: the authy entry from /services/subscriptions, null = not subscribed
+  const [subInfo, setSubInfo] = useState(undefined); // undefined = loading
   const [subLoading, setSubLoading] = useState(true);
-  const [subError, setSubError] = useState('');
   const [subscribing, setSubscribing] = useState(false);
   const [subscribeError, setSubscribeError] = useState('');
   const [credentials, setCredentials] = useState(null);
   const [credDialogOpen, setCredDialogOpen] = useState(false);
+  const [secretVisible, setSecretVisible] = useState(false);
+  const [copiedField, setCopiedField] = useState('');
 
-  const hasApiToken = Boolean(sessionStorage.getItem('api_token'));
-
-  useEffect(() => {
-    if (!sessionStorage.getItem('api_token')) {
+  const fetchSubInfo = () => {
+    if (!localStorage.getItem('token')) {
       setSubLoading(false);
       return;
     }
-    getServiceStatus('authy')
-      .then(setSubStatus)
-      .catch((err) => setSubError(err?.response?.data?.message || err?.message || 'Failed to fetch subscription status.'))
+    setSubLoading(true);
+    getUserSubscriptions()
+      .then((list) => setSubInfo((list || []).find((s) => s.name === 'authy') || null))
+      .catch(() => setSubInfo(null))
       .finally(() => setSubLoading(false));
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchSubInfo();
+  }, []); // runs once on mount
+
+  const handleCopyField = (val, key) => {
+    navigator.clipboard.writeText(val);
+    setCopiedField(key);
+    setTimeout(() => setCopiedField(''), 2000);
+  };
 
   const handleSubscribe = async () => {
     setSubscribing(true);
@@ -876,22 +879,23 @@ export default function Authy() {
       const data = await subscribeToService('authy');
       setCredentials(data);
       setCredDialogOpen(true);
-      // refresh status
-      const status = await getServiceStatus('authy');
-      setSubStatus(status);
+      fetchSubInfo();
     } catch (err) {
-      setSubscribeError(err?.response?.data?.message || err?.message || 'Subscription failed. Please try again.');
+      const msg = err?.response?.data?.error || err?.response?.data?.message || err?.message || '';
+      setSubscribeError(
+        msg.toLowerCase().includes('already') ? 'Already subscribed — try refreshing the page.' : 'Subscription failed. Please try again.'
+      );
     } finally {
       setSubscribing(false);
     }
   };
 
-  // ── subscription banner ─────────────────────────────────────────────────
-  const renderSubscriptionBanner = () => {
-    if (!hasApiToken) {
+  // ── subscription section ─────────────────────────────────────────────────
+  const renderSubscriptionSection = () => {
+    if (!localStorage.getItem('token')) {
       return (
         <Alert severity="info" sx={{ mb: 4, borderRadius: 2 }}>
-          Set an API token in the header to check your Authy subscription status.
+          Please log in to manage your Authy subscription.
         </Alert>
       );
     }
@@ -899,49 +903,145 @@ export default function Authy() {
       return (
         <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 4 }}>
           <CircularProgress size={18} />
-          <Typography variant="body2" color="text.secondary">Checking subscription status…</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Checking subscription…
+          </Typography>
         </Stack>
       );
     }
-    if (subError) {
-      return <Alert severity="error" sx={{ mb: 4, borderRadius: 2 }}>{subError}</Alert>;
-    }
-    if (!subStatus) return null;
 
-    if (subStatus.is_subscribed && subStatus.is_enabled && !subStatus.is_expired) {
+    // ── SUBSCRIBED ──
+    if (subInfo) {
+      const statusColor = subInfo.is_expired ? 'error' : subInfo.is_enabled ? 'success' : 'warning';
+      const statusLabel = subInfo.is_expired ? 'Expired' : subInfo.is_enabled ? 'Active' : 'Disabled';
       return (
-        <Alert
-          severity="success"
-          icon={<SafetyCertificateOutlined style={{ fontSize: 18 }} />}
-          sx={{ mb: 4, borderRadius: 2 }}
-          action={
-            <Chip label="Active" color="success" size="small" sx={{ borderRadius: 1 }} />
-          }
-        >
-          You are subscribed to <strong>{subStatus.display_name || 'Authy OTP Service'}</strong>. Your integration is active and ready.
-        </Alert>
+        <Paper variant="outlined" sx={{ mb: 4, borderRadius: 2.5, overflow: 'hidden' }}>
+          {/* Header */}
+          <Box
+            sx={{
+              px: 2.5,
+              py: 2,
+              bgcolor: 'grey.50',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 1
+            }}
+          >
+            <Stack direction="row" alignItems="center" spacing={1.25}>
+              <SafetyCertificateOutlined style={{ fontSize: 18, color: '#1890ff' }} />
+              <Typography variant="subtitle1" fontWeight={700}>
+                {subInfo.display_name || 'Authy OTP Service'}
+              </Typography>
+            </Stack>
+            <Chip label={statusLabel} color={statusColor} size="small" sx={{ borderRadius: 1 }} />
+          </Box>
+
+          {/* Credential rows */}
+          <Stack divider={<Divider />} sx={{ px: 2.5, py: 1.5 }}>
+            {/* Client ID */}
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ py: 1.25 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ minWidth: 110 }}>
+                Client ID
+              </Typography>
+              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flex: 1, minWidth: 0 }}>
+                <Typography
+                  component="code"
+                  variant="body2"
+                  sx={{ fontFamily: 'monospace', fontSize: '0.78rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                >
+                  {subInfo.client_id}
+                </Typography>
+                <Tooltip title={copiedField === 'id' ? 'Copied!' : 'Copy'}>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleCopyField(subInfo.client_id, 'id')}
+                    sx={{ color: copiedField === 'id' ? 'success.main' : 'text.secondary', flexShrink: 0 }}
+                  >
+                    {copiedField === 'id' ? <CheckCircleOutlined style={{ fontSize: 13 }} /> : <CopyOutlined style={{ fontSize: 13 }} />}
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            </Stack>
+
+            {/* Client Secret */}
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ py: 1.25 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ minWidth: 110 }}>
+                Client Secret
+              </Typography>
+              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flex: 1, minWidth: 0 }}>
+                <Typography
+                  component="code"
+                  variant="body2"
+                  sx={{ fontFamily: 'monospace', fontSize: '0.78rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                >
+                  {secretVisible ? subInfo.client_secret : '•'.repeat(32)}
+                </Typography>
+                <Tooltip title={secretVisible ? 'Hide' : 'Reveal'}>
+                  <IconButton size="small" onClick={() => setSecretVisible((v) => !v)} sx={{ color: 'text.secondary', flexShrink: 0 }}>
+                    <LockOutlined style={{ fontSize: 13 }} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={copiedField === 'secret' ? 'Copied!' : 'Copy'}>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleCopyField(subInfo.client_secret, 'secret')}
+                    sx={{ color: copiedField === 'secret' ? 'success.main' : 'text.secondary', flexShrink: 0 }}
+                  >
+                    {copiedField === 'secret' ? (
+                      <CheckCircleOutlined style={{ fontSize: 13 }} />
+                    ) : (
+                      <CopyOutlined style={{ fontSize: 13 }} />
+                    )}
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            </Stack>
+
+            {/* Dates */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ py: 1.25 }}>
+              {subInfo.created_at && (
+                <Stack direction="row" spacing={1}>
+                  <Typography variant="caption" color="text.secondary">
+                    Subscribed:
+                  </Typography>
+                  <Typography variant="caption">{new Date(subInfo.created_at).toLocaleDateString()}</Typography>
+                </Stack>
+              )}
+              {subInfo.expires_at && (
+                <Stack direction="row" spacing={1}>
+                  <Typography variant="caption" color="text.secondary">
+                    Expires:
+                  </Typography>
+                  <Typography variant="caption" color={subInfo.is_expired ? 'error.main' : 'text.primary'}>
+                    {new Date(subInfo.expires_at).toLocaleDateString()}
+                  </Typography>
+                </Stack>
+              )}
+            </Stack>
+          </Stack>
+        </Paper>
       );
     }
 
-    if (subStatus.is_subscribed && (subStatus.is_expired || !subStatus.is_enabled)) {
-      return (
-        <Alert
-          severity="warning"
-          icon={<ExclamationCircleOutlined style={{ fontSize: 18 }} />}
-          sx={{ mb: 4, borderRadius: 2 }}
-        >
-          Your Authy subscription is {subStatus.is_expired ? 'expired' : 'disabled'}.
-          {' '}Contact support to renew or re-enable it.
-        </Alert>
-      );
-    }
-
-    // not subscribed
+    // ── NOT SUBSCRIBED ──
     return (
       <Paper
         variant="outlined"
-        sx={{ mb: 4, p: 2.5, borderRadius: 2.5, borderColor: 'primary.light', bgcolor: 'primary.lighter', display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, gap: 2 }}
+        sx={{
+          mb: 4,
+          p: 2.5,
+          borderRadius: 2.5,
+          borderColor: 'primary.light',
+          bgcolor: 'primary.lighter',
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          gap: 2
+        }}
       >
         <Stack spacing={0.5} sx={{ flex: 1 }}>
           <Typography variant="subtitle2" fontWeight={700}>
@@ -951,7 +1051,9 @@ export default function Authy() {
             Subscribe to get auto-generated credentials and enable one-click OTP verification for your users.
           </Typography>
           {subscribeError && (
-            <Typography variant="caption" color="error.main" sx={{ mt: 0.5 }}>{subscribeError}</Typography>
+            <Typography variant="caption" color="error.main" sx={{ mt: 0.5 }}>
+              {subscribeError}
+            </Typography>
           )}
         </Stack>
         <Button
@@ -983,9 +1085,28 @@ export default function Authy() {
               Authy API, and users are verified in seconds.
             </Typography>
             <Box>
-              <Button variant="contained" size="large" onClick={() => setDialogOpen(true)} sx={{ borderRadius: 2, px: 4, fontWeight: 600 }}>
-                Authenticate with Authy
-              </Button>
+              {subInfo ? (
+                <Button
+                  variant="outlined"
+                  size="large"
+                  startIcon={<CheckCircleOutlined />}
+                  disabled
+                  sx={{ borderRadius: 2, px: 4, fontWeight: 600 }}
+                >
+                  Subscribed
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  size="large"
+                  // startIcon={subscribing ? <CircularProgress size={16} color="inherit" /> : <KeyOutlined />}
+                  disabled={subscribing || subLoading}
+                  onClick={handleSubscribe}
+                  sx={{ borderRadius: 2, px: 4, fontWeight: 600 }}
+                >
+                  {subscribing ? 'Subscribing…' : 'Subscribe to Authy'}
+                </Button>
+              )}
             </Box>
           </Stack>
         </Grid>
@@ -996,8 +1117,8 @@ export default function Authy() {
         </Grid>
       </Grid>
 
-      {/* ── Subscription status / subscribe CTA ── */}
-      {renderSubscriptionBanner()}
+      {/* ── Subscription section ── */}
+      {renderSubscriptionSection()}
 
       {/* ── Integration Guide ── */}
       <Box>
@@ -1071,7 +1192,6 @@ export default function Authy() {
         ))}
       </Stack>
 
-      <ComingSoonDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
       <CredentialsDialog open={credDialogOpen} onClose={() => setCredDialogOpen(false)} credentials={credentials} />
     </>
   );

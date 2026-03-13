@@ -25,12 +25,15 @@ import {
   CheckOutlined,
   WhatsAppOutlined,
   PlusOutlined,
-  // AppstoreOutlined,
-  // MobileOutlined,
-  // KeyOutlined,
   DeleteOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  SafetyOutlined,
+  AppstoreOutlined,
+  ArrowRightOutlined
 } from '@ant-design/icons';
+import Chip from '@mui/material/Chip';
+import { Link } from 'react-router';
+import { getUserSubscriptions } from 'api/services';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
@@ -82,6 +85,8 @@ export default function DashboardDefault() {
   // const [webhookError, setWebhookError] = useState('');
   // const [webhooks, setWebhooks] = useState([]);
   // const [showAddWebhook, setShowAddWebhook] = useState(false);
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [subsLoading, setSubsLoading] = useState(true);
   const wsRef = useRef(null);
   const wsGotDataRef = useRef(false);
   const navigate = useNavigate();
@@ -122,8 +127,21 @@ export default function DashboardDefault() {
     }
   };
 
+  // Map service name → dashboard route
+  const SERVICE_ROUTES = { authy: '/authy' };
+  const SERVICE_ICONS = { authy: <SafetyOutlined style={{ fontSize: 20 }} /> };
+
   useEffect(() => {
     if (sessionStorage.getItem('api_token')) fetchPlatforms();
+    // Subscriptions use the login token
+    if (localStorage.getItem('token')) {
+      getUserSubscriptions()
+        .then(setSubscriptions)
+        .catch(() => setSubscriptions([]))
+        .finally(() => setSubsLoading(false));
+    } else {
+      setSubsLoading(false);
+    }
   }, []);
 
   const handleDeleteDevice = async () => {
@@ -544,7 +562,7 @@ export default function DashboardDefault() {
               Enter your API Token
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              Device calls require an API token (e.g. <code>sk_...</code>). It is stored in session storage and cleared when you close the
+              Device calls require an API token (e.g. <code>mt_...</code>). It is stored in session storage and cleared when you close the
               tab.
             </Typography>
           </Box>
@@ -552,7 +570,7 @@ export default function DashboardDefault() {
           <DialogContent sx={{ pt: 2.5 }}>
             <TextField
               label="API Token"
-              placeholder="sk_..."
+              placeholder="mt_..."
               value={apiTokenInput}
               onChange={(e) => setApiTokenInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSaveApiToken()}
@@ -869,6 +887,70 @@ export default function DashboardDefault() {
                       {platformIcons[device.platform]}
                     </Avatar>
                     <ListItemText primary={device.id} secondary={device.platform} />
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </MainCard>
+        </Grid>
+
+        {/* My Services */}
+        <Grid size={{ xs: 12, md: 12, lg: 6 }}>
+          <MainCard borderRadius={4} title="My Services">
+            {subsLoading ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1 }}>
+                <CircularProgress size={18} />
+                <Typography variant="body2" color="text.secondary">
+                  Loading subscriptions…
+                </Typography>
+              </Box>
+            ) : subscriptions.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                No active subscriptions. Subscribe to a service to get started.
+              </Typography>
+            ) : (
+              <List disablePadding>
+                {subscriptions.map((svc) => (
+                  <ListItem
+                    key={svc.name}
+                    disableGutters
+                    sx={{
+                      py: 1.25,
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                      '&:last-child': { borderBottom: 0 }
+                    }}
+                    secondaryAction={
+                      SERVICE_ROUTES[svc.name] ? (
+                        <Button
+                          component={Link}
+                          to={SERVICE_ROUTES[svc.name]}
+                          size="small"
+                          endIcon={<ArrowRightOutlined />}
+                          sx={{ borderRadius: 1.5 }}
+                        >
+                          Open
+                        </Button>
+                      ) : null
+                    }
+                  >
+                    <Avatar sx={{ mr: 2, bgcolor: 'primary.lighter', width: 36, height: 36 }} variant="rounded">
+                      {SERVICE_ICONS[svc.name] ?? <AppstoreOutlined style={{ fontSize: 20 }} />}
+                    </Avatar>
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="subtitle2">{svc.display_name || svc.name}</Typography>
+                          <Chip
+                            label={svc.is_expired ? 'Expired' : svc.is_enabled ? 'Active' : 'Disabled'}
+                            color={svc.is_expired ? 'error' : svc.is_enabled ? 'success' : 'warning'}
+                            size="small"
+                            sx={{ borderRadius: 1, height: 18, fontSize: '0.65rem' }}
+                          />
+                        </Box>
+                      }
+                      secondary={svc.expires_at ? `Expires ${new Date(svc.expires_at).toLocaleDateString()}` : svc.description || ''}
+                    />
                   </ListItem>
                 ))}
               </List>
