@@ -37,7 +37,7 @@ function ApiTokenChip() {
           cursor: 'pointer',
           bgcolor: hasToken ? 'success.lighter' : 'warning.lighter',
           color: hasToken ? 'success.dark' : 'warning.dark',
-          fontWeight: 700,
+          fontWeight: 600,
           fontSize: '0.72rem',
           '&:hover': { opacity: 0.85 }
         }}

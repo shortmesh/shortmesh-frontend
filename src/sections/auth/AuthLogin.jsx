@@ -122,6 +122,7 @@ export default function AuthLogin({ isDemo = false }) {
                     onBlur={handleBlur}
                     onChange={handleChange}
                     placeholder="Enter email"
+                    sx={{ borderRadius: 2 }}
                     fullWidth
                     error={Boolean(touched.email && errors.email)}
                   />
@@ -137,6 +138,7 @@ export default function AuthLogin({ isDemo = false }) {
                   <InputLabel htmlFor="password-login">Password</InputLabel>
                   <OutlinedInput
                     fullWidth
+                    sx={{ borderRadius: 2 }}
                     error={Boolean(touched.password && errors.password)}
                     id="password-login"
                     type={showPassword ? 'text' : 'password'}
@@ -187,7 +189,15 @@ export default function AuthLogin({ isDemo = false }) {
               </Grid>
               <Grid size={12}>
                 <AnimateButton>
-                  <Button type="submit" fullWidth size="large" variant="contained" color="primary" disabled={loading}>
+                  <Button
+                    sx={{ borderRadius: 2 }}
+                    type="submit"
+                    fullWidth
+                    size="large"
+                    variant="contained"
+                    color="primary"
+                    disabled={loading}
+                  >
                     {loading ? 'Logging in...' : 'Login'}
                   </Button>
                 </AnimateButton>

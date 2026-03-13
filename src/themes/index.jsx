@@ -41,7 +41,7 @@ export default function ThemeCustomization({ children }) {
   };
 
   const theme = Palette(mode, 'default');
-  const themeTypography = Typography('Public Sans', 'sans-serif');
+  const themeTypography = Typography('Poppins', 'sans-serif');
   const themeCustomShadows = useMemo(() => CustomShadows(theme), [theme]);
 
   const themeOptions = useMemo(

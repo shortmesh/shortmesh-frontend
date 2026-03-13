@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 
 // material-ui
-import Grid from '@mui/material/Grid2';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
 
 // project imports
 import AuthWrapper from 'sections/auth/AuthWrapper';
@@ -14,19 +14,25 @@ import FirebaseRegister from 'sections/auth/AuthRegister';
 export default function Register() {
   return (
     <AuthWrapper>
-      <Grid container spacing={3}>
-        <Grid size={12}>
-          <Stack direction="row" sx={{ alignItems: 'baseline', justifyContent: 'space-between', mb: { xs: -0.5, sm: 0.5 } }}>
-            <Typography variant="h3">Sign up</Typography>
-            <Typography component={Link} to="/login" variant="body1" sx={{ textDecoration: 'none' }} color="primary">
-              Already have an account?
-            </Typography>
-          </Stack>
-        </Grid>
-        <Grid size={12}>
-          <FirebaseRegister />
-        </Grid>
-      </Grid>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" fontWeight={700} sx={{ mb: 0.75 }}>
+          Create an account
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Start messaging at scale with ShortMesh
+        </Typography>
+      </Box>
+
+      <FirebaseRegister />
+
+      <Divider sx={{ my: 3 }} />
+
+      <Typography variant="body2" color="text.secondary" align="center">
+        Already have an account?{' '}
+        <Typography component={Link} to="/login" variant="body2" color="primary" sx={{ textDecoration: 'none', fontWeight: 600 }}>
+          Sign in
+        </Typography>
+      </Typography>
     </AuthWrapper>
   );
 }

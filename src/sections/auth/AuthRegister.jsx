@@ -145,6 +145,7 @@ export default function AuthRegister() {
                     error={Boolean(touched.email && errors.email)}
                     id="email-signup"
                     type="text"
+                    sx={{ borderRadius: 2 }}
                     value={values.email}
                     name="email"
                     onBlur={handleBlur}
@@ -166,6 +167,7 @@ export default function AuthRegister() {
                     error={Boolean(touched.password && errors.password)}
                     id="password-signup"
                     type={showPassword ? 'text' : 'password'}
+                    sx={{ borderRadius: 2 }}
                     value={values.password}
                     name="password"
                     onBlur={handleBlur}
@@ -217,6 +219,7 @@ export default function AuthRegister() {
                     type={showPassword ? 'text' : 'password'}
                     value={values.repeatPassword}
                     name="repeatPassword"
+                    sx={{ borderRadius: 2 }}
                     onBlur={handleBlur}
                     onChange={handleChange}
                     placeholder="******"
@@ -260,7 +263,15 @@ export default function AuthRegister() {
               )}
               <Grid size={12}>
                 <AnimateButton>
-                  <Button fullWidth size="large" variant="contained" color="primary" type="submit" disabled={loading}>
+                  <Button
+                    sx={{ borderRadius: 2 }}
+                    fullWidth
+                    size="large"
+                    variant="contained"
+                    color="primary"
+                    type="submit"
+                    disabled={loading}
+                  >
                     {loading ? 'Creating Account...' : 'Create Account'}
                   </Button>
                 </AnimateButton>
