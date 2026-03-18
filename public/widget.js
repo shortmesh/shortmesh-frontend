@@ -1,16 +1,22 @@
 (function () {
+  // Resolve the base URL from the script tag itself so that icon paths always
+  // point back to the ShortMesh host, even when the widget is embedded on an
+  // external domain. Falls back to the page origin if currentScript is unavailable.
+  const _scriptSrc = (document.currentScript && document.currentScript.src) || '';
+  const BASE_URL = _scriptSrc ? _scriptSrc.substring(0, _scriptSrc.lastIndexOf('/') + 1) : '/';
+
   const PLATFORM_REGISTRY = {
     wa: {
       label: 'WhatsApp',
-      icon: 'WhatsApp.svg'
+      icon: BASE_URL + 'WhatsApp.svg'
     },
     telegram: {
       label: 'Telegram',
-      icon: 'Logo.svg'
+      icon: BASE_URL + 'Logo.svg'
     },
     signal: {
       label: 'Signal',
-      icon: 'Signal-Logo.svg'
+      icon: BASE_URL + 'Signal-Logo.svg'
     }
   };
   let widgetConfig = {

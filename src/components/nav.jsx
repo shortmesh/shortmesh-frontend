@@ -21,7 +21,7 @@ const Nav = () => {
   const menuItems = [
     { text: 'Features', href: '#features' },
     { text: 'API Docs', href: 'https://api.shortmesh.com/tutorials', external: true },
-    { text: 'Self-Host', href: '#self-host' },
+    { text: 'Self-Host', href: '/docs' },
     { text: 'Pricing', href: '#pricing' }
   ];
 
@@ -89,7 +89,7 @@ const Nav = () => {
           >
             API Docs
           </Button>
-          <Button component="a" variant="text" href="#self-host" style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}>
+          <Button component={Link} variant="text" to="/docs" style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}>
             Self-Host
           </Button>
           <Button component="a" variant="text" href="#pricing" style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}>
