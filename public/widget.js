@@ -31,6 +31,12 @@
       return;
     }
 
+    const shadowHost = document.createElement('div');
+    const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
+    document.body.appendChild(shadowHost);
+
+    injectStyles(shadowRoot);
+
     const overlay = document.createElement('div');
     overlay.id = 'shortmesh-overlay';
 
@@ -41,12 +47,12 @@
       </div>
     `;
 
-    document.body.appendChild(overlay);
+    shadowRoot.appendChild(overlay);
 
     const content = overlay.querySelector('#shortmesh-content');
     const closeBtn = overlay.querySelector('.shortmesh-close');
 
-    closeBtn.onclick = () => overlay.remove();
+    closeBtn.onclick = () => shadowHost.remove();
 
     async function fetchPlatforms() {
       const response = await fetch(widgetConfig.endpoints.platforms);
@@ -79,7 +85,7 @@
         const apiIds = platformsFromAPI.map((p) => p.platform).join(', ');
         console.error('ShortMesh: No platforms found. API returned:', apiIds);
         content.innerHTML = `
-    <h2 class="shortmesh-modal-title">Verify your account</h2>
+    <h2>Verify your account</h2>
     <p>No available verification methods. Contact support for assistance.</p>
     <div class="shortmesh-footer">Powered by Shortmesh</div>
   `;
@@ -131,19 +137,19 @@
         };
       });
 
-      content.querySelector('.secondary').onclick = () => overlay.remove();
+      content.querySelector('.secondary').onclick = () => shadowHost.remove();
 
       continueBtn.onclick = () => {
         if (!selected) return;
         widgetConfig.onSelect(selected);
-        overlay.remove();
+        shadowHost.remove();
       };
     }
 
     renderSelect();
   }
 
-  function injectStyles() {
+  function injectStyles(root) {
     const style = document.createElement('style');
     style.innerHTML = `
       #shortmesh-overlay {
@@ -186,33 +192,25 @@
         font-size: 18px;
       }
 
-      .shortmesh-modal h2 {
+      h2 {
         margin-bottom: 8px;
         font-size: 24px;
-        display: block;
-        visibility: visible;
-      }
-
-      .shortmesh-modal-title {
-      color: #101010;
       }
 
       @media (max-width: 480px) {
-        .shortmesh-modal h2 {
+        h2 {
           font-size: 20px;
         }
       }
 
-      .shortmesh-modal p {
+      p {
         font-size: 14px;
         color: #555;
         margin-bottom: 20px;
-        display: block;
-        visibility: visible;
       }
 
       @media (max-width: 480px) {
-        .shortmesh-modal p {
+        p {
           font-size: 13px;
         }
       }
@@ -277,10 +275,8 @@
         margin-top: 16px;
       }
     `;
-    document.head.appendChild(style);
+    root.appendChild(style);
   }
-
-  injectStyles();
 
   window.ShortMeshWidget = {
     open: createWidget
