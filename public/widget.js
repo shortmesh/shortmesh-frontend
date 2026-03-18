@@ -15,34 +15,20 @@ const PLATFORM_REGISTRY = {
 
 (function () {
   let widgetConfig = {
-    identifier: null,
     endpoints: {
       platforms: null,
-      sendOtp: null,
-      verifyOtp: null,
     },
-    onSuccess: function () {},
+    onSelect: function () {},
     onError: function () {},
   };
 
   function createWidget(config = {}) {
-    widgetConfig.identifier = config.identifier || null;
     widgetConfig.endpoints = config.endpoints || {};
-    widgetConfig.onSuccess = config.onSuccess || function () {};
+    widgetConfig.onSelect = config.onSelect || function () {};
     widgetConfig.onError = config.onError || function () {};
 
     if (!widgetConfig.endpoints.platforms) {
       console.error("ShortMesh: platforms endpoint is required");
-      return;
-    }
-
-    if (!widgetConfig.identifier) {
-      console.error("ShortMesh: phoneNumber is required");
-      return;
-    }
-
-    if (!widgetConfig.endpoints.sendOtp || !widgetConfig.endpoints.verifyOtp) {
-      console.error("ShortMesh: sendOtp and verifyOtp endpoints are required");
       return;
     }
 
@@ -62,64 +48,6 @@ const PLATFORM_REGISTRY = {
     const closeBtn = overlay.querySelector(".shortmesh-close");
 
     closeBtn.onclick = () => overlay.remove();
-
-    /* ---------------- SEND OTP ---------------- */
-
-    async function sendOtp(platform) {
-      const payload = {
-        identifier: widgetConfig.identifier,
-        platform,
-      };
-
-      const response = await fetch(widgetConfig.endpoints.sendOtp, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send OTP");
-      }
-
-      return response.json();
-    }
-
-    /* ---------------- VERIFY OTP ---------------- */
-
-    async function verifyOtp(code, platform) {
-      const payload = {
-        identifier: widgetConfig.identifier,
-        code,
-        platform,
-      };
-
-      const response = await fetch(widgetConfig.endpoints.verifyOtp, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Invalid OTP");
-      }
-
-      return response.json();
-    }
-
-    /* ---------------- RESEND OTP ---------------- */
-
-    async function resendOtp(platform) {
-      return sendOtp(platform);
-    }
-
-    /* ---------------- EXTRACT EXPIRY SECONDS ---------------- */
-
-    function extractExpirySeconds(otpResponse) {
-      if (otpResponse?.expiresIn) return otpResponse.expiresIn;
-      if (otpResponse?.expiry) return otpResponse.expiry;
-      if (otpResponse?.ttl) return otpResponse.ttl;
-      return 30; // default fallback
-    }
 
     async function fetchPlatforms() {
       const response = await fetch(widgetConfig.endpoints.platforms);
@@ -145,11 +73,7 @@ const PLATFORM_REGISTRY = {
         return;
       }
 
-      console.log("ShortMesh: Platforms from API:", platformsFromAPI);
-      console.log(
-        "ShortMesh: Supported platforms:",
-        Object.keys(PLATFORM_REGISTRY),
-      );
+      // console.log("ShortMesh: Platforms from API:", platformsFromAPI);
 
       const supportedPlatformsArray = platformsFromAPI.filter(
         (p) => PLATFORM_REGISTRY[p.platform],
@@ -216,144 +140,11 @@ const PLATFORM_REGISTRY = {
 
       content.querySelector(".secondary").onclick = () => overlay.remove();
 
-      continueBtn.onclick = async () => {
+      continueBtn.onclick = () => {
         if (!selected) return;
-
-        continueBtn.disabled = true;
-
-        try {
-          const otpResponse = await sendOtp(selected);
-          renderOTP(selected, otpResponse);
-        } catch (err) {
-          widgetConfig.onError(err);
-          continueBtn.disabled = false;
-        }
+        widgetConfig.onSelect(selected);
+        overlay.remove();
       };
-    }
-
-    function renderOTP(platform, otpResponse) {
-      const expirySeconds = extractExpirySeconds(otpResponse);
-
-      content.innerHTML = `
-        <h2>Enter verification code</h2>
-        <p>sent via <strong>${platform}</strong></p>
-
-        <div class="shortmesh-otp">
-          ${Array(6)
-            .fill(0)
-            .map(
-              (_, i) =>
-                `<input type="text" maxlength="1" class="otp-box" id="otp-${i}" />`,
-            )
-            .join("")}
-        </div>
-
-        <div class="shortmesh-resend">
-          <span class="resend-text">Didn't receive a code? <a href="#" class="resend-link disabled">Resend</a></span>
-          <span class="resend-timer">Available in <strong>${expirySeconds}s</strong></span>
-        </div>
-
-        <div class="shortmesh-buttons">
-          <button class="btn secondary">Go back</button>
-          <button class="btn primary">Continue</button>
-        </div>
-
-        <div class="shortmesh-footer">Powered by Shortmesh</div>
-      `;
-
-      const inputs = content.querySelectorAll(".otp-box");
-      const verifyBtn = content.querySelector(".primary");
-      const resendLink = content.querySelector(".resend-link");
-      const resendTimer = content.querySelector(".resend-timer");
-
-      let timeLeft = expirySeconds;
-      let currentCountdown = null;
-
-      const startCountdown = () => {
-        if (currentCountdown) clearInterval(currentCountdown);
-        
-        currentCountdown = setInterval(() => {
-          timeLeft--;
-          if (timeLeft > 0) {
-            resendTimer.innerHTML = `Available in <strong>${timeLeft}s</strong>`;
-          } else {
-            clearInterval(currentCountdown);
-            resendTimer.style.display = "none";
-            resendLink.classList.remove("disabled");
-          }
-        }, 1000);
-      };
-
-      startCountdown();
-
-      resendLink.onclick = async (e) => {
-        e.preventDefault();
-        if (resendLink.classList.contains("disabled")) return;
-
-        resendLink.classList.add("disabled");
-        resendTimer.style.display = "inline";
-
-        try {
-          const newOtpResponse = await resendOtp(platform);
-          timeLeft = extractExpirySeconds(newOtpResponse);
-          resendTimer.innerHTML = `Available in <strong>${timeLeft}s</strong>`;
-          startCountdown();
-        } catch (err) {
-          widgetConfig.onError(err);
-        }
-      };
-
-      inputs.forEach((input, index) => {
-        input.addEventListener("input", (e) => {
-          if (!/^[0-9]$/.test(e.target.value)) {
-            e.target.value = "";
-            return;
-          }
-          if (index < inputs.length - 1) {
-            inputs[index + 1].focus();
-          }
-        });
-      });
-
-      content.querySelector(".secondary").onclick = renderSelect;
-
-      verifyBtn.onclick = async () => {
-        const code = Array.from(inputs)
-          .map((i) => i.value)
-          .join("");
-
-        if (code.length !== 6) return;
-
-        verifyBtn.disabled = true;
-        renderLoading();
-
-        try {
-          const result = await verifyOtp(code, platform);
-          renderSuccess();
-          widgetConfig.onSuccess(result);
-        } catch (err) {
-          widgetConfig.onError(err);
-          const newOtpResponse = await sendOtp(platform);
-          renderOTP(platform, newOtpResponse);
-        }
-      };
-    }
-
-    function renderLoading() {
-      content.innerHTML = `
-        <h2>Verifying...</h2>
-        <p>Checking your code</p>
-        <div class="shortmesh-spinner"></div>
-        <div class="shortmesh-footer">Powered by Shortmesh</div>
-      `;
-    }
-
-    function renderSuccess() {
-      content.innerHTML = `
-        <h2>Verified Successfully</h2>
-        <div class="shortmesh-check">✓</div>
-        <div class="shortmesh-footer">Powered by Shortmesh</div>
-      `;
     }
 
     renderSelect();
@@ -479,95 +270,10 @@ const PLATFORM_REGISTRY = {
         background: #e6e6e6;
       }
 
-      .shortmesh-otp {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-bottom: 24px;
-      }
-
-      @media (max-width: 380px) {
-        .shortmesh-otp {
-          gap: 6px;
-        }
-      }
-
-      .otp-box {
-        width: 42px;
-        height: 48px;
-        text-align: center;
-        font-size: 18px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-      }
-
-      @media (max-width: 380px) {
-        .otp-box {
-          width: 36px;
-          height: 42px;
-          font-size: 16px;
-        }
-      }
-
-      .shortmesh-check {
-        font-size: 48px;
-        margin: 24px 0;
-      }
-
       .shortmesh-footer {
         font-size: 12px;
         color: #777;
         margin-top: 16px;
-      }
-
-      .shortmesh-resend {
-        font-size: 13px;
-        color: #555;
-        margin-bottom: 20px;
-        text-align: center;
-      }
-
-      @media (max-width: 480px) {
-        .shortmesh-resend {
-          font-size: 12px;
-        }
-      }
-
-      .resend-link {
-        color: #4b5bdc;
-        text-decoration: none;
-        cursor: pointer;
-        font-weight: 500;
-      }
-
-      .resend-link:hover:not(.disabled) {
-        text-decoration: underline;
-      }
-
-      .resend-link.disabled {
-        color: #999;
-        cursor: not-allowed;
-        pointer-events: none;
-      }
-
-      .resend-timer {
-        display: inline;
-        color: #777;
-      }
-
-      .shortmesh-spinner {
-        width: 48px;
-        height: 48px;
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #4b5bdc;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin: 24px auto;
-      }
-
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
       }
     `;
     document.head.appendChild(style);
