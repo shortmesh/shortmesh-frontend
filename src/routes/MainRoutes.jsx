@@ -9,6 +9,9 @@ import RequireOnboarding from '../components/RequireOnboarding';
 import Landing from '../pages/main/landing';
 import Pricing from '../pages/main/pricing';
 
+// render - docs
+const DocsPage = Loadable(lazy(() => import('pages/docs/index')));
+
 // render- Dashboard
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/default')));
 
@@ -41,6 +44,7 @@ const MainRoutes = {
     },
     { path: '*', element: <NotFound /> },
     { path: 'pricing', element: <Pricing /> },
+    { path: 'docs', element: <DocsPage /> },
     {
       element: <DashboardLayout />,
       children: [
