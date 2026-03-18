@@ -1,25 +1,24 @@
-const PLATFORM_REGISTRY = {
-  wa: {
-    label: "WhatsApp",
-    icon: "WhatsApp.svg",
-  },
-  telegram: {
-    label: "Telegram",
-    icon: "Logo.svg",
-  },
-  signal: {
-    label: "Signal",
-    icon: "Signal-Logo.svg",
-  },
-};
-
 (function () {
+  const PLATFORM_REGISTRY = {
+    wa: {
+      label: 'WhatsApp',
+      icon: 'WhatsApp.svg'
+    },
+    telegram: {
+      label: 'Telegram',
+      icon: 'Logo.svg'
+    },
+    signal: {
+      label: 'Signal',
+      icon: 'Signal-Logo.svg'
+    }
+  };
   let widgetConfig = {
     endpoints: {
-      platforms: null,
+      platforms: null
     },
     onSelect: function () {},
-    onError: function () {},
+    onError: function () {}
   };
 
   function createWidget(config = {}) {
@@ -28,12 +27,12 @@ const PLATFORM_REGISTRY = {
     widgetConfig.onError = config.onError || function () {};
 
     if (!widgetConfig.endpoints.platforms) {
-      console.error("ShortMesh: platforms endpoint is required");
+      console.error('ShortMesh: platforms endpoint is required');
       return;
     }
 
-    const overlay = document.createElement("div");
-    overlay.id = "shortmesh-overlay";
+    const overlay = document.createElement('div');
+    overlay.id = 'shortmesh-overlay';
 
     overlay.innerHTML = `
       <div class="shortmesh-modal">
@@ -44,8 +43,8 @@ const PLATFORM_REGISTRY = {
 
     document.body.appendChild(overlay);
 
-    const content = overlay.querySelector("#shortmesh-content");
-    const closeBtn = overlay.querySelector(".shortmesh-close");
+    const content = overlay.querySelector('#shortmesh-content');
+    const closeBtn = overlay.querySelector('.shortmesh-close');
 
     closeBtn.onclick = () => overlay.remove();
 
@@ -53,7 +52,7 @@ const PLATFORM_REGISTRY = {
       const response = await fetch(widgetConfig.endpoints.platforms);
 
       if (!response.ok) {
-        throw new Error("Failed to fetch platforms");
+        throw new Error('Failed to fetch platforms');
       }
 
       return response.json();
@@ -68,23 +67,17 @@ const PLATFORM_REGISTRY = {
         platformsFromAPI = await fetchPlatforms();
       } catch (err) {
         widgetConfig.onError(err);
-        content.innerHTML =
-          "<p>Failed to load platforms. Contact support for assistance.</p>";
+        content.innerHTML = '<p>Failed to load platforms. Contact support for assistance.</p>';
         return;
       }
 
       // console.log("ShortMesh: Platforms from API:", platformsFromAPI);
 
-      const supportedPlatformsArray = platformsFromAPI.filter(
-        (p) => PLATFORM_REGISTRY[p.platform],
-      );
+      const supportedPlatformsArray = platformsFromAPI.filter((p) => PLATFORM_REGISTRY[p.platform]);
 
       if (supportedPlatformsArray.length === 0) {
-        const apiIds = platformsFromAPI.map((p) => p.platform).join(", ");
-        console.error(
-          "ShortMesh: No matching platforms found. API returned:",
-          apiIds,
-        );
+        const apiIds = platformsFromAPI.map((p) => p.platform).join(', ');
+        console.error('ShortMesh: No platforms found. API returned:', apiIds);
         content.innerHTML = `
     <h2>Verify your account</h2>
     <p>No available verification methods. Contact support for assistance.</p>
@@ -108,7 +101,7 @@ const PLATFORM_REGISTRY = {
       </div>
     `;
         })
-        .join("");
+        .join('');
       content.innerHTML = `
   <h2>Verify your account</h2>
   <p>Select where you'd like to receive your code.</p>
@@ -126,19 +119,19 @@ const PLATFORM_REGISTRY = {
 `;
 
       let selected = null;
-      const platforms = content.querySelectorAll(".shortmesh-platform");
-      const continueBtn = content.querySelector(".primary");
+      const platforms = content.querySelectorAll('.shortmesh-platform');
+      const continueBtn = content.querySelector('.primary');
 
       platforms.forEach((el) => {
         el.onclick = () => {
-          platforms.forEach((p) => p.classList.remove("active"));
-          el.classList.add("active");
+          platforms.forEach((p) => p.classList.remove('active'));
+          el.classList.add('active');
           selected = el.dataset.platform;
           continueBtn.disabled = false;
         };
       });
 
-      content.querySelector(".secondary").onclick = () => overlay.remove();
+      content.querySelector('.secondary').onclick = () => overlay.remove();
 
       continueBtn.onclick = () => {
         if (!selected) return;
@@ -151,7 +144,7 @@ const PLATFORM_REGISTRY = {
   }
 
   function injectStyles() {
-    const style = document.createElement("style");
+    const style = document.createElement('style');
     style.innerHTML = `
       #shortmesh-overlay {
         position: fixed;
@@ -193,25 +186,29 @@ const PLATFORM_REGISTRY = {
         font-size: 18px;
       }
 
-      h2 {
+      .shortmesh-modal h2 {
         margin-bottom: 8px;
         font-size: 24px;
+        display: block;
+        visibility: visible;
       }
 
       @media (max-width: 480px) {
-        h2 {
+        .shortmesh-modal h2 {
           font-size: 20px;
         }
       }
 
-      p {
+      .shortmesh-modal p {
         font-size: 14px;
         color: #555;
         margin-bottom: 20px;
+        display: block;
+        visibility: visible;
       }
 
       @media (max-width: 480px) {
-        p {
+        .shortmesh-modal p {
           font-size: 13px;
         }
       }
@@ -282,6 +279,6 @@ const PLATFORM_REGISTRY = {
   injectStyles();
 
   window.ShortMeshWidget = {
-    open: createWidget,
+    open: createWidget
   };
 })();
