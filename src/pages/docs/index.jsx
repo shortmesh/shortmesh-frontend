@@ -142,7 +142,6 @@ function StepLabel({ number, label }) {
 const tocItems = [
   { id: 'overview', label: 'Overview' },
   { id: 'architecture', label: 'Architecture' },
-  { id: 'prerequisites', label: 'Prerequisites' },
   { id: 'synapse', label: '1. Synapse Homeserver' },
   { id: 'mas', label: '2. MAS (Auth Service)' },
   { id: 'client', label: '3. ShortMesh Client' },
@@ -155,7 +154,6 @@ const tocItems = [
 // ==============================|| DOCS PAGE ||============================== //
 
 export default function DocsPage() {
-  const [envTab, setEnvTab] = useState(0);
   const [apiTab, setApiTab] = useState(0);
   const [activeId, setActiveId] = useState('overview');
   const observerRef = useRef(null);
@@ -199,7 +197,7 @@ export default function DocsPage() {
           ShortMesh Setup Guide
         </Typography>
         <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 640, mx: 'auto', fontWeight: 400 }}>
-          Everything you need to self-host the full ShortMesh stack from the Matrix homeserver to the Authy OTP service.
+          Everything you need to self-host the full ShortMesh stack.
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 3, flexWrap: 'wrap' }}>
           {[
@@ -356,92 +354,40 @@ Authy API                                         Synapse Homeserver
 
             <Divider sx={{ mb: 6 }} />
 
-            {/* ===== PREREQUISITES ===== */}
-            <Section id="prerequisites">
-              <SectionTitle icon={<CheckCircleOutlined />}>Prerequisites</SectionTitle>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                Before you begin, ensure you have the following installed and available:
-              </Typography>
-              <Grid container spacing={2}>
-                {[
-                  ['Go', '1.24.0+', 'Required for Client and Interface API; 1.25.0+ for Authy API'],
-                  ['RabbitMQ', '3.x+', 'Message queue for Interface API ↔ Client communication'],
-                  ['SQLite / SQLCipher', 'Latest', 'Database for Interface API and Authy API (SQLCipher for encryption)'],
-                  ['libolm', 'Latest', 'Cryptographic library required by the ShortMesh Client (Matrix E2EE)'],
-                  ['Synapse', '1.x+', 'Matrix homeserver — see setup section below'],
-                  ['MAS', 'Latest', 'Matrix Authentication Service — works alongside Synapse'],
-                  ['Nginx / reverse proxy', 'Optional', 'Recommended for production TLS termination'],
-                  ['Certbot / TLS certs', 'Optional', 'Required for production HTTPS']
-                ].map(([name, version, desc]) => (
-                  <Grid key={name} size={{ xs: 12, sm: 6 }}>
-                    <Paper variant="outlined" sx={{ p: 2, height: '100%', borderRadius: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                          {name}
-                        </Typography>
-                        <Chip label={version} size="small" variant="outlined" />
-                      </Box>
-                      <Typography variant="body2" color="text.secondary">
-                        {desc}
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-
-              <SubSection title="System Dependencies (Ubuntu/Debian)">
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  Install low-level dependencies:
-                </Typography>
-                <CodeBlock
-                  language="bash"
-                  code={`# SQLCipher (encrypted database support)
-sudo apt-get update
-sudo apt-get install -y libsqlite3-dev libsqlcipher-dev
-
-# libolm (Matrix E2EE cryptography — required by Client)
-sudo apt install libolm-dev
-
-# RabbitMQ
-sudo apt-get install -y rabbitmq-server
-sudo systemctl enable --now rabbitmq-server`}
-                />
-              </SubSection>
-
-              <SubSection title="Go Installation">
-                <CodeBlock
-                  language="bash"
-                  code={`# Install Go 1.24+ (adjust version as needed)
-wget https://go.dev/dl/go1.24.0.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go
-sudo tar -C /usr/local -xzf go1.24.0.linux-amd64.tar.gz
-echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
-source ~/.bashrc
-go version`}
-                />
-              </SubSection>
-
-              <SubSection title="Swagger (for Client API docs)">
-                <CodeBlock
-                  language="bash"
-                  code={`go install github.com/swaggo/swag/cmd/swag@latest
-go get github.com/swaggo/http-swagger
-go get github.com/swaggo/files
-export PATH=$PATH:$(go env GOPATH)/bin`}
-                />
-              </SubSection>
-            </Section>
-
-            <Divider sx={{ mb: 6 }} />
-
             {/* ===== SYNAPSE ===== */}
             <Section id="synapse">
               <SectionTitle icon={<DeploymentUnitOutlined />} chip="Step 1">
                 Synapse Homeserver
               </SectionTitle>
+              <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                <Chip
+                  icon={<GithubOutlined />}
+                  label="element-hq/synapse"
+                  component="a"
+                  href="https://github.com/element-hq/synapse"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  clickable
+                  size="small"
+                />
+                <Chip
+                  icon={<GithubOutlined />}
+                  label="Synapse Docs"
+                  component="a"
+                  href="https://element-hq.github.io/synapse/latest/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  clickable
+                  size="small"
+                  variant="outlined"
+                />
+              </Box>
+              <Typography variant="body1" sx={{ mb: 1, lineHeight: 1.8 }}>
+                <strong>What:</strong> Synapse is the Matrix homeserver — the backbone of ShortMesh's messaging infrastructure.
+              </Typography>
               <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.8 }}>
-                Synapse is the Matrix homeserver that underpins ShortMesh. You need a working Synapse instance before setting up any other
-                component.
+                <strong>Why:</strong> Every message, bridge room, and user session runs through Synapse. It must be running and reachable
+                before any other ShortMesh component can work.
               </Typography>
 
               <SubSection title="Install Synapse">
@@ -470,66 +416,20 @@ sudo apt-get install -y matrix-synapse-py3`}
                 />
               </SubSection>
 
-              <SubSection title="Nginx Reverse Proxy for Synapse">
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  Place this in your Nginx config (e.g. <code>/etc/nginx/sites-available/matrix</code>):
-                </Typography>
-                <CodeBlock
-                  language="nginx"
-                  code={`server {
-    listen 443 ssl http2;
-    server_name matrix.example.com;
-
-    ssl_certificate /etc/letsencrypt/live/matrix.example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/matrix.example.com/privkey.pem;
-
-    client_max_body_size 50M;
-
-    # MAS-backed client auth routes
-    location ~ ^/_matrix/client/(v3|v1)/(login|logout|refresh|auth_metadata|capabilities) {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Synapse endpoints
-    location ~ ^(/_matrix|/_synapse/client|/_synapse/mas) {
-        proxy_pass http://127.0.0.1:8008;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # .well-known
-    location /.well-known/matrix/ {
-        alias /var/www/matrix/.well-known/matrix/;
-        default_type application/json;
-        add_header Access-Control-Allow-Origin *;
-    }
-}`}
-                />
-              </SubSection>
-
-              <SubSection title="Well-Known Client Discovery">
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  Create <code>/var/www/matrix/.well-known/matrix/client</code>:
-                </Typography>
-                <CodeBlock
-                  language="json"
-                  code={`{
-  "m.homeserver": {
-    "base_url": "https://matrix.example.com"
-  },
-  "org.matrix.msc2965.authentication": {
-    "issuer": "https://auth.example.com/",
-    "account": "https://auth.example.com/account/"
-  }
-}`}
-                />
-              </SubSection>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Put Synapse behind a reverse proxy (Nginx / Caddy) with TLS, and serve a <code>.well-known/matrix/client</code> file so
+                clients can discover your homeserver and MAS issuer. See the{' '}
+                <Box
+                  component="a"
+                  href="https://element-hq.github.io/synapse/latest/reverse_proxy.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ color: 'primary.main' }}
+                >
+                  Synapse reverse proxy docs
+                </Box>{' '}
+                for configuration details.
+              </Alert>
             </Section>
 
             <Divider sx={{ mb: 6 }} />
@@ -539,9 +439,24 @@ sudo apt-get install -y matrix-synapse-py3`}
               <SectionTitle icon={<SafetyOutlined />} chip="Step 2">
                 MAS — Matrix Authentication Service
               </SectionTitle>
+              <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                <Chip
+                  icon={<GithubOutlined />}
+                  label="element-hq/matrix-authentication-service"
+                  component="a"
+                  href="https://github.com/element-hq/matrix-authentication-service"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  clickable
+                  size="small"
+                />
+              </Box>
+              <Typography variant="body1" sx={{ mb: 1, lineHeight: 1.8 }}>
+                <strong>What:</strong> MAS is the OAuth2/OIDC authentication layer that sits alongside Synapse.
+              </Typography>
               <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.8 }}>
-                MAS is the OAuth2/OIDC authentication layer for Synapse. ShortMesh requires MAS to handle user login flows and issue tokens
-                for the Client.
+                <strong>Why:</strong> Synapse delegates all user authentication to MAS. The ShortMesh Client uses OAuth2 client credentials
+                (issued by MAS) to log in as a Matrix user and manage bridge sessions on your behalf.
               </Typography>
               <Alert severity="info" sx={{ mb: 2 }}>
                 Reference setup guide:{' '}
@@ -556,50 +471,21 @@ sudo apt-get install -y matrix-synapse-py3`}
                 </Box>
               </Alert>
 
-              <SubSection title="MAS config.yaml (key sections)">
-                <CodeBlock
-                  language="yaml"
-                  code={`http:
-  listeners:
-    - name: web
-      resources:
-        - name: discovery
-        - name: human
-        - name: oauth
-        - name: compat
-        - name: graphql
-        - name: assets
-      binds:
-        - host: 0.0.0.0
-          port: 8080
-    - name: internal
-      resources:
-        - name: health
-      binds:
-        - host: localhost
-          port: 8081
-  trusted_proxies:
-    - 192.168.0.0/16
-    - 172.16.0.0/12
-    - 10.0.0.0/10
-    - 127.0.0.1/8
-    - fd00::/8
-    - ::1/128
-  public_base: https://auth.example.com/
-  issuer: https://auth.example.com/
-
-matrix:
-  kind: synapse
-  homeserver: matrix.example.com
-  endpoint: https://matrix.example.com/
-  secret: YOUR_SHARED_SECRET_HERE
-
-account:
-  password_registration_enabled: true
-  password_recovery_enabled: true
-  account_deactivation_allowed: true
-  login_with_email_allowed: true`}
-                />
+              <SubSection title="MAS Configuration">
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  For a full configuration reference, see the{' '}
+                  <Box
+                    component="a"
+                    href="https://element-hq.github.io/matrix-authentication-service/reference/configuration.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{ color: 'primary.main' }}
+                  >
+                    MAS configuration docs
+                  </Box>
+                  . Key fields to set: <code>http.public_base</code>, <code>matrix.homeserver</code>, <code>matrix.secret</code>, and the{' '}
+                  <code>account</code> block.
+                </Alert>
               </SubSection>
 
               <SubSection title="Retrieve MAS Client Credentials">
@@ -630,9 +516,12 @@ curl -X POST https://auth.example.com/oauth2/registration \\
               <SectionTitle icon={<DeploymentUnitOutlined />} chip="Step 3">
                 ShortMesh Client
               </SectionTitle>
+              <Typography variant="body1" sx={{ mb: 1, lineHeight: 1.8 }}>
+                <strong>What:</strong> A headless Go service that connects to your Synapse homeserver and manages Matrix bridge rooms.
+              </Typography>
               <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.8 }}>
-                The ShortMesh Client is a headless Go application that connects to your Matrix homeserver, manages bridge rooms, and routes
-                incoming/outgoing messages through RabbitMQ.
+                <strong>Why:</strong> It acts as the message router — receiving instructions from the Interface API via RabbitMQ and
+                translating them into Matrix events that reach WhatsApp, Signal, and other bridged platforms.
               </Typography>
               <Box
                 component="a"
@@ -773,9 +662,13 @@ sudo systemctl enable --now matrix-client`}
               <SectionTitle icon={<ApiOutlined />} chip="Step 4">
                 Interface API
               </SectionTitle>
+              <Typography variant="body1" sx={{ mb: 1, lineHeight: 1.8 }}>
+                <strong>What:</strong> The primary REST API your applications call to manage tokens, link messaging devices via QR code, and
+                send messages.
+              </Typography>
               <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.8 }}>
-                The Interface API is the primary REST API your applications call. It handles token management, device linking (via QR code),
-                and message sending. It communicates with the ShortMesh Client via RabbitMQ.
+                <strong>Why:</strong> This is the main entry point for your code into the ShortMesh stack. It abstracts all Matrix protocol
+                complexity and communicates with the ShortMesh Client via RabbitMQ.
               </Typography>
               <Box
                 component="a"
@@ -798,81 +691,34 @@ make run          # Start the API server (http://localhost:8080)`}
                 />
               </SubSection>
 
-              <SubSection title="Environment Configuration">
+              <SubSection title="Key Environment Variables">
                 <Typography variant="body2" sx={{ mb: 1 }}>
-                  After <code>make setup</code>, review and update <code>.env</code>:
+                  After <code>make setup</code>, review and update <code>.env</code>. Key variables:
                 </Typography>
-
-                <Tabs value={envTab} onChange={(_, v) => setEnvTab(v)} sx={{ mb: 1 }}>
-                  <Tab label="Server" />
-                  <Tab label="Auth & Keys" />
-                  <Tab label="Matrix Services" />
-                  <Tab label="RabbitMQ" />
-                </Tabs>
-
-                {envTab === 0 && (
-                  <CodeBlock
-                    language="env"
-                    code={`# Application mode: 'development' or 'production'
-# Production enforces HTTPS unless overridden
-APP_MODE=development
+                <CodeBlock
+                  language="env"
+                  code={`APP_MODE=development        # 'production' enforces HTTPS
 HOST=127.0.0.1
 PORT=8080
-LOG_LEVEL=info
 
-# TLS (required in production unless ALLOW_INSECURE_SERVER=true)
-TLS_CERT_FILE=
-TLS_KEY_FILE=
+# Auto-generated by 'make setup' — do NOT change after initial setup
+HASH_KEY=                   # openssl rand -base64 32
+DB_ENCRYPTION_KEY=          # openssl rand -hex 32
+CLIENT_ID=                  # openssl rand -hex 16
+CLIENT_SECRET=              # openssl rand -hex 32
 
-# Security overrides — use with caution
-ALLOW_INSECURE_SERVER=false     # Allow HTTP behind reverse proxy
-ALLOW_INSECURE_EXTERNAL=false   # Allow HTTP for external services
-DISABLE_DB_ENCRYPTION=true      # Set to false for AES-256 SQLCipher
-
-# Database
-SQLITE_DB_PATH=./data/shortmesh.db
-
-# Auto-migrate (disable in production — run make migrate-up manually)
-AUTO_MIGRATE=true`}
-                  />
-                )}
-                {envTab === 1 && (
-                  <CodeBlock
-                    language="env"
-                    code={`# Auto-generated by 'make setup' — DO NOT change after initial setup
-# Changing these will invalidate all existing tokens and encrypted data
-
-# HMAC key for token signing
-HASH_KEY=     # openssl rand -base64 32
-
-# SQLCipher encryption key (required when DISABLE_DB_ENCRYPTION=false)
-DB_ENCRYPTION_KEY=   # openssl rand -hex 32
-
-# API client credentials (used by Authy API and your app)
-CLIENT_ID=     # openssl rand -hex 16
-CLIENT_SECRET= # openssl rand -hex 32`}
-                  />
-                )}
-                {envTab === 2 && (
-                  <CodeBlock
-                    language="env"
-                    code={`# Matrix Authentication Service (MAS)
+# MAS (from Step 2)
 MAS_URL=https://auth.example.com
-MAS_ADMIN_URL=http://localhost:8081   # MAS internal admin API
+MAS_ADMIN_URL=http://localhost:8081
 ADMIN_CLIENT_ID=your-admin-client-id
 ADMIN_CLIENT_SECRET=your-admin-client-secret
 
-# ShortMesh Client URL (where the Go client is running)
-MATRIX_CLIENT_URL=http://localhost:8080`}
-                  />
-                )}
-                {envTab === 3 && (
-                  <CodeBlock
-                    language="env"
-                    code={`# RabbitMQ — must match the Client's rabbitmq config
+# ShortMesh Client URL (from Step 3)
+MATRIX_CLIENT_URL=http://localhost:8080
+
+# RabbitMQ — must match the Client's config
 RABBITMQ_URL=amqp://guest:guest@localhost:5672/`}
-                  />
-                )}
+                />
               </SubSection>
 
               <SubSection title="Makefile Commands">
@@ -909,9 +755,12 @@ make docs
               <SectionTitle icon={<KeyOutlined />} chip="Step 5">
                 Authy API
               </SectionTitle>
+              <Typography variant="body1" sx={{ mb: 1, lineHeight: 1.8 }}>
+                <strong>What:</strong> A standalone OTP microservice for generating, delivering, and verifying one-time passwords.
+              </Typography>
               <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.8 }}>
-                The Authy API is a standalone OTP microservice. It uses the Interface API to deliver one-time passwords via a linked
-                messaging device (e.g., WhatsApp), then verifies them.
+                <strong>Why:</strong> Instead of SMS or email, Authy delivers OTPs through linked messaging platforms (e.g., WhatsApp) via
+                the Interface API — giving you a phone-based 2FA flow with no carrier dependency.
               </Typography>
               <Box
                 component="a"
@@ -934,36 +783,20 @@ make run          # Start the OTP server (http://localhost:8080)`}
                 />
               </SubSection>
 
-              <SubSection title="Environment Configuration">
+              <SubSection title="Key Environment Variables">
                 <CodeBlock
                   language="env"
-                  code={`# Server
-APP_MODE=development
+                  code={`APP_MODE=development        # 'production' enforces HTTPS
 HOST=127.0.0.1
 PORT=8080
-LOG_LEVEL=info
 
-# TLS (required in production)
-TLS_CERT_FILE=
-TLS_KEY_FILE=
-ALLOW_INSECURE_SERVER=false
-ALLOW_INSECURE_EXTERNAL=false
+# Auto-generated by 'make setup' — do NOT change after initial setup
+HASH_KEY=                   # openssl rand -base64 32
+DB_ENCRYPTION_KEY=          # openssl rand -hex 32
 
-# Database
-SQLITE_DB_PATH=./data/authy.db
-DISABLE_DB_ENCRYPTION=true   # Set to false for AES-256 SQLCipher
-
-# Auto-migrate (disable in production)
-AUTO_MIGRATE=true
-
-# Crypto keys (auto-generated by make setup)
-HASH_KEY=           # openssl rand -base64 32
-DB_ENCRYPTION_KEY=  # openssl rand -hex 32
-
-# Interface API connection (REQUIRED)
-# Use the CLIENT_ID and CLIENT_SECRET from Interface API's .env
+# Interface API connection (REQUIRED — from Step 4)
 INTERFACE_API_URL=http://localhost:8080
-INTERFACE_API_TOKEN=mt_xxxxx   # A Matrix token from Interface API`}
+INTERFACE_API_TOKEN=mt_xxxxx  # A Matrix token from the Interface API`}
                 />
               </SubSection>
 
